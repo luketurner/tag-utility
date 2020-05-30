@@ -3,8 +3,9 @@ import os.path
 from .crud import upsert
 from .mimetypes import guess_mime_type
 
+
 def ingest_file(conn, filename, tags=None):
-  """Ingests a single file, retaining as much metadata about the file as possible.
+    """Ingests a single file, retaining as much metadata about the file as possible.
 
     The file is stored with a ``file:///`` URI, and mimetype guessed according to the Python mimetypes library.
     If an existing file already has this URI, it will be updated instead of creating a new one.
@@ -15,15 +16,17 @@ def ingest_file(conn, filename, tags=None):
     """
     abs_name = os.path.abspath(filename)
     _assert_file(abs_name)
-    file = upsert(conn, conn.File,
-      uri="file://" + abs_name,
-      mime_type=guess_mime_type(abs_name),
-      name=os.path.basename(abs_name),
+    file = upsert(
+        conn,
+        conn.File,
+        uri="file://" + abs_name,
+        mime_type=guess_mime_type(abs_name),
+        name=os.path.basename(abs_name),
     )
 
     for name, value in (tags or {}).items():
-      tag = upsert(conn, conn.Tag, name=name)
-      file_tag = upsert(conn, conn.FileTag, file=file, tag=tag, value=value)
+        tag = upsert(conn, conn.Tag, name=name)
+        file_tag = upsert(conn, conn.FileTag, file=file, tag=tag, value=value)
 
     return file
 

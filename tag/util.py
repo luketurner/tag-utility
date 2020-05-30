@@ -1,7 +1,7 @@
-import click
 import os.path
 import glob
 from .error import TagException
+
 
 def split_version(version_string, num_parts):
     """Given a version string, splits it into a ``num_parts``-length tuple. If the string has too many or too few parts, an error is raised."""

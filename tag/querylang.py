@@ -25,6 +25,7 @@ import shlex
 
 from .error import TagException
 
+
 def parse_search_query(db, s, delim=":"):
 
     ast = emit_query_ast(s, delim)
