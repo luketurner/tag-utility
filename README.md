@@ -16,6 +16,22 @@ Tags are stored in SQLite database(s) using a well-defined schema. They can be b
 
 The `tag` utility's focused goal is to read and write the data in these files, which are called *tag databases*, in a way that plays nicely with the ecosystem of "UNIXy tools."
 
+
+# Usage as a Library
+
+The `tag` utility can also be imported and used as a Python library. For now, this is considered a power-user mode and isn't fully documented.
+
+Example usage:
+
+``` python
+import tag
+
+# Add a file to the db with tag mytag=mytagvalue
+with tag.connect("mytags.tag.sqlite"):
+  file_object = tag.ingest_file("myfile.txt", {"mytag": "mytagvalue"})
+```
+
+
 ## Database Schema
 
 A tag database has these tables:
