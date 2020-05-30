@@ -6,7 +6,7 @@
 
 ``` bash
 # adds the tag "foo" with value "bar" to myphoto.jpg
-tag add foo=bar -- myphoto.jpg
+tag add -t foo=bar myphoto.jpg
 
 # opens myphoto.jpg in feh image viewer
 tag ls foo | feh -f -
@@ -26,3 +26,15 @@ A tag database has these tables:
 4. The `config` table holds configuration information for later clients.
 
 ![entity relationship diagram](assets/tag_db_schema.png)
+
+
+## Development
+
+The following commands are useful when doing development against `tag` itself:
+
+``` bash
+poetry install          # install deps (run this first)
+poetry run pytest       # run tests
+poetry run black tag    # format code
+poetry run tag          # run `tag` from source
+```
