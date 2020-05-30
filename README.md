@@ -2,9 +2,7 @@
 
 > **WARNING:** `tag` is a work in progress! Use at your own risk!
 
-`tag` is a CLI utility for organizing files in a non-hierarchical way using... *tags*. (Surprise!)
-
-`tag` has a text-driven interface suitable for command pipelines. A simple example:
+`tag` is a CLI utility for organizing files in a non-hierarchical way using... *tags*. (Surprise!) A simple example:
 
 ``` bash
 # adds the tag "foo" with value "bar" to myphoto.jpg
