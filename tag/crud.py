@@ -15,8 +15,11 @@ def insert(conn, model, **kwargs):
         created_at=kwargs.get("created_at", datetime.now()),
         updated_at=kwargs.get("updated_at", datetime.now()),
     )
-    commit()
-    return instance
+    try:
+        flush()
+    except Exception as e:
+        instance.delete() # prevent our instance from failing future flushes in the same transaction
+        raise e
 
 
 def update(conn, model, update_key="id", **kwargs):
@@ -41,7 +44,7 @@ def update(conn, model, update_key="id", **kwargs):
         **{k: v for k, v in kwargs.items() if v != None},
         updated_at=kwargs.get("updated_at", datetime.now()),
     )
-    commit()
+    flush()
     return existing
 
 
