@@ -37,10 +37,10 @@ def connect(filename, create_db=True):
         updated_at = Required(datetime)
 
     class FileTag(db.Entity):
-        file = Required(File)
-        tag = Required(Tag)
+        file = Required(File, index=True)
+        tag = Required(Tag, index=True)
         PrimaryKey(file, tag)
-        value = Optional(str)
+        value = Optional(str, index=True)
         created_at = Required(datetime)
         updated_at = Required(datetime)
 
