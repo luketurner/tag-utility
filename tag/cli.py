@@ -12,6 +12,8 @@ import click
 import os.path
 import re
 import functools
+import json
+import shlex
 
 from . import ingest_file, connect, version
 from .util import try_resolve_db
@@ -19,6 +21,7 @@ from .util import try_resolve_db
 import pony.orm as orm
 
 from .querylang import emit_term
+from .error import TagException
 
 
 @click.group()
@@ -29,14 +32,16 @@ from .querylang import emit_term
     type=click.Path(),
     help="Specify the tag database to use.",
 )
+@click.option("--output", "-o", default="plain", type=click.Choice(["plain", "json"], case_sensitive=False))
 @click.version_option(version())
 @click.pass_context
-def cli(ctx, database):
+def cli(ctx, database, output):
     ctx.ensure_object(dict)
     database = database or try_resolve_db() or "index.tag.sqlite"
     if not os.path.isfile(database) and database[-11:] != ".tag.sqlite":
         database += ".tag.sqlite"
     ctx.obj["db_filename"] = database
+    ctx.obj["output_format"] = output
 
 
 def db_session(f):
@@ -82,17 +87,12 @@ def rm(conn, file, tag):
 def ls(conn, tag):
     """Lists files for given tags."""
     if len(tag) == 0:
-        print(
-            [
-                os.path.relpath(re.sub(r"^file://", "", uri))
-                for uri in orm.select(f.uri for f in conn.File)
-            ]
-        )
+        output_files(orm.select(f for f in conn.File))
         return
     query = orm.select(x.file for x in conn.FileTag)
     for op, lhs, rhs in (emit_term(t, "=") for t in tag):
         print("op", op, "lhs", lhs, "rhs", rhs)
-    print([os.path.relpath(re.sub(r"^file://", "", uri)) for uri in query])
+    output_files(query)
 
 
 @cli.command()
@@ -101,4 +101,20 @@ def ls(conn, tag):
 def show(conn, file):
     """Shows details about files."""
     for f in file:
-        print("show", f)
+        output("show", f)
+
+
+
+def output_files(files):
+    ctx = click.get_current_context()
+    fmt = ctx.obj.get("output_format")
+
+    if fmt == "json":
+        # TODO - fix this to output timestamps
+        click.echo(json.dumps([f.to_dict(exclude=["created_at", "updated_at"]) for f in files]))
+    elif fmt == "plain":
+        [click.echo(_uri_to_relpath(f.uri) + "  ", nl=False) for f in files]
+        click.echo()
+
+def _uri_to_relpath(uri):
+    return shlex.quote(os.path.relpath(re.sub(r"^file://", "", uri)))
