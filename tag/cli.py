@@ -20,7 +20,7 @@ from .util import try_resolve_db
 
 import pony.orm as orm
 
-from .querylang import emit_term
+from . import search
 from .error import TagException
 
 
@@ -62,7 +62,7 @@ def db_session(f):
 def add(conn, file, tag):
     """Add tags to files."""
     print("add", file, tag)
-    [ingest_file(conn, f) for f in file]
+    [ingest_file(conn, f, tags=parse_tags(tag)) for f in file]
 
 
 @cli.command()
@@ -89,10 +89,7 @@ def ls(conn, tag):
     if len(tag) == 0:
         output_files(orm.select(f for f in conn.File))
         return
-    query = orm.select(x.file for x in conn.FileTag)
-    for op, lhs, rhs in (emit_term(t, "=") for t in tag):
-        print("op", op, "lhs", lhs, "rhs", rhs)
-    output_files(query)
+    output_files(search(conn, tags=parse_tags(tag)))
 
 
 @cli.command()
@@ -103,6 +100,14 @@ def show(conn, file):
     for f in file:
         output("show", f)
 
+
+def parse_tags(tags):
+    return {
+        k: v
+        for k, v in map(
+            lambda x: x.split("=", 1) if "=" in x else (x, None), tags
+        )
+    }
 
 
 def output_files(files):
