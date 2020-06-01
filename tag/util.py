@@ -2,6 +2,8 @@ import os.path
 import glob
 from .error import TagException
 
+import urllib.parse
+
 
 def split_version(version_string, num_parts):
     """Given a version string, splits it into a ``num_parts``-length tuple. If the string has too many or too few parts, an error is raised."""
@@ -42,3 +44,15 @@ def try_resolve_db(base_path="."):
         rel_path = os.path.join("..", rel_path)
         if not os.path.isdir(rel_path):
             return None
+
+
+def path_to_uri(path, host=None):
+    return 'file://{}/{}'.format(urllib.parse.quote(host or ''), urllib.parse.quote(os.path.abspath(path)))
+
+def uri_to_path(uri):
+    parsed_uri = urllib.parse.urlparse(uri)
+    if parsed_uri.scheme != 'file':
+        raise TagException('Unsupported uri scheme: ' + parsed_uri.scheme)
+    host = urllib.parse.unquote(parsed_uri.netloc)
+    path = urllib.parse.unquote(os.path.relpath(parsed_uri.path))
+    return (path, host)

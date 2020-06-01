@@ -16,7 +16,7 @@ import json
 import shlex
 
 from . import ingest_file, connect, version, get_file, get_file_tags
-from .util import try_resolve_db
+from .util import try_resolve_db, uri_to_path
 
 import pony.orm as orm
 
@@ -155,4 +155,4 @@ def output_filetag_list(filetags):
         click.echo()
 
 def _uri_to_relpath(uri):
-    return shlex.quote(os.path.relpath(re.sub(r"^file://", "", uri)))
+    return shlex.quote(uri_to_path(uri))

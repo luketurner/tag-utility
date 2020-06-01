@@ -5,15 +5,16 @@ from datetime import datetime
 from pony.orm import *
 from pony.orm.core import TransactionIntegrityError, CacheIndexError
 
+from .util import path_to_uri
 
 def get(conn, model, id):
     return select(x for x in model if x.id == id).first()
 
 def get_file(conn, filename):
-    return select(x for x in conn.File if x.uri == "file://" + os.path.abspath(filename)).first()
+    return select(x for x in conn.File if x.uri == path_to_uri(filename)).first()
 
 def get_file_tags(conn, filename):
-    return select(x for x in conn.FileTag if x.file.uri == "file://" + os.path.abspath(filename))
+    return select(x for x in conn.FileTag if x.file.uri == path_to_uri(filename))
 
 
 def insert(conn, model, **kwargs):

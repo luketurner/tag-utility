@@ -2,6 +2,7 @@ import os.path
 
 from .crud import upsert
 from .mimetypes import guess_mime_type
+from .util import path_to_uri
 
 
 def ingest_file(conn, filename, tags=None):
@@ -19,7 +20,7 @@ def ingest_file(conn, filename, tags=None):
     file = upsert(
         conn,
         conn.File,
-        uri="file://" + abs_name,
+        uri=path_to_uri(abs_name),
         mime_type=guess_mime_type(abs_name),
         name=os.path.basename(abs_name),
     )

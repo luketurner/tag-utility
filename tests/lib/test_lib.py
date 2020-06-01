@@ -19,24 +19,24 @@ def test_creating_new_db_should_succeed(conn):
   assert conn
 
 def test_insert_file_should_succeed(conn):
-  f = tag.insert(conn, conn.File, uri="file://test", name="test-name")
+  f = tag.insert(conn, conn.File, uri="file:///test", name="test-name")
   assert f.id
   assert f.name == "test-name"
 
 def test_upsert_file_should_update_existing_by_id(conn):
-  f = tag.upsert(conn, conn.File, uri="file://test", name="test-name")
+  f = tag.upsert(conn, conn.File, uri="file:///test", name="test-name")
   assert f.id
   assert f.name == "test-name"
-  f2 = tag.upsert(conn, conn.File, id=f.id, uri="file://test2", name="test-name2")
+  f2 = tag.upsert(conn, conn.File, id=f.id, uri="file:///test2", name="test-name2")
   assert f2.id == f.id
-  assert f2.uri == "file://test2"
-  assert f.uri == "file://test2"
+  assert f2.uri == "file:///test2"
+  assert f.uri == "file:///test2"
 
 def test_upsert_file_should_update_existing_by_uri(conn):
-  f = tag.upsert(conn, conn.File, uri="file://test", name="test-name")
+  f = tag.upsert(conn, conn.File, uri="file:///test", name="test-name")
   assert f.id
   assert f.name == "test-name"
-  f2 = tag.upsert(conn, conn.File, uri="file://test", name="test-name2")
+  f2 = tag.upsert(conn, conn.File, uri="file:///test", name="test-name2")
   assert f2.id == f.id
   assert f2.name == "test-name2"
   assert f.name == "test-name2"
@@ -86,3 +86,10 @@ def test_ingest_file_should_update_file_tags_if_existing_and_changed(conn, tmpfi
   tag.ingest_file(conn, tmpfile, { "test-tag": None, "test-tag2": "test-value2" })
   file_tag = orm.select(x for x in conn.FileTag if x.tag.name == "test-tag2").first()
   assert file_tag.value == 'test-value2'
+
+def test_ingest_file_should_escape_path(conn, tmpdir):
+  filename = os.path.join(tmpdir, "test\\file name")
+  with open(filename, 'w') as file:
+    file.write("test-content")
+  f = tag.ingest_file(conn, filename)
+  assert "test%5Cfile%20name" in f.uri
