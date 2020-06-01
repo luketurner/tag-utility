@@ -2,7 +2,7 @@
 
 > **WARNING:** `tag` is a work in progress! Use at your own risk!
 
-`tag` is a CLI utility for organizing files in a non-hierarchical way using... *tags*. (Surprise!) A simple example:
+`tag` is a CLI utility (and Python library) for organizing files in a non-hierarchical way using... *tags*. (Surprise!) A simple example:
 
 ``` bash
 # adds the tag "foo" with value "bar" to myphoto.jpg
@@ -12,9 +12,14 @@ tag add -t foo=bar myphoto.jpg
 tag ls foo | feh -f -
 ```
 
-Tags are stored in SQLite database(s) using a well-defined schema. They can be bare annotations (e.g. `foo`) or they can have a value (e.g. `foo=bar`).
+Tags are stored in SQLite database(s) using a well-defined schema. They can be bare annotations (e.g. `foo`) or they can have a value (e.g. `foo=bar`). The `tag` utility's focused goal is to read and write the data in these files, which are called *tag databases*.
 
-The `tag` utility's focused goal is to read and write the data in these files, which are called *tag databases*, in a way that plays nicely with the ecosystem of "UNIXy tools."
+# Getting Started
+
+``` bash
+# NOTE: Only tested with Python 3.8+
+pip install git+https://github.com/luketurner/tag-utility.git
+```
 
 
 # Usage as a Library
