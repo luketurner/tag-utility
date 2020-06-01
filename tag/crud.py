@@ -1,3 +1,4 @@
+import os.path
 import re
 from datetime import datetime
 
@@ -8,6 +9,12 @@ from pony.orm.core import TransactionIntegrityError, CacheIndexError
 def get(conn, model, id):
     return select(x for x in model if x.id == id).first()
 
+def get_file(conn, filename):
+    return select(x for x in conn.File if x.uri == "file://" + os.path.abspath(filename)).first()
+
+def get_file_tags(conn, filename):
+    return select(x for x in conn.FileTag if x.file.uri == "file://" + os.path.abspath(filename))
+
 
 def insert(conn, model, **kwargs):
     instance = model(
@@ -17,6 +24,7 @@ def insert(conn, model, **kwargs):
     )
     try:
         flush()
+        return instance
     except Exception as e:
         instance.delete() # prevent our instance from failing future flushes in the same transaction
         raise e
