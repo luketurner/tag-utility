@@ -15,7 +15,7 @@ import functools
 import json
 import shlex
 
-from . import ingest_file, connect, version
+from . import ingest_file, connect, version, get_file, get_file_tags
 from .util import try_resolve_db
 
 import pony.orm as orm
@@ -87,18 +87,24 @@ def rm(conn, file, tag):
 def ls(conn, tag):
     """Lists files for given tags."""
     if len(tag) == 0:
-        output_files(orm.select(f for f in conn.File))
+        output_file_list(orm.select(f for f in conn.File))
         return
-    output_files(search(conn, tags=parse_tags(tag)))
+    output_file_list(search(conn, tags=parse_tags(tag)))
 
 
 @cli.command()
 @click.argument("file", nargs=-1, type=click.Path())
+@click.option("--tags", "-t", is_flag=True, help="Show applied tags.")
 @db_session
-def show(conn, file):
+def show(conn, file, tags):
     """Shows details about files."""
-    for f in file:
-        output("show", f)
+
+    if tags:
+        filetags = {}
+        [filetags.update({ ft.tag: ft }) for f in file for ft in get_file_tags(conn, f)]
+        output_filetag_list(filetags.values())
+    else:
+        output_file_info(get_file(conn, f) for f in file)
 
 
 def parse_tags(tags):
@@ -109,16 +115,43 @@ def parse_tags(tags):
         )
     }
 
+def pretty_dict(d):
+    width = max(len(k) for k in d)
+    return "\n".join([" {:>{width}} = {}".format(k, v or "None", width=width) for k, v in d.items()])
 
-def output_files(files):
+
+def output_file_info(files):
+    ctx = click.get_current_context()
+    fmt = ctx.obj.get("output_format")
+
+    dicts_to_print = [f.to_dict(exclude=["created_at", "updated_at"]) for f in files]
+
+    if fmt == "json":
+        click.echo(json.dumps(dicts_to_print))
+    else:
+        click.echo("\n\n".join(pretty_dict(d) for d in dicts_to_print))
+
+
+def output_file_list(files):
     ctx = click.get_current_context()
     fmt = ctx.obj.get("output_format")
 
     if fmt == "json":
         # TODO - fix this to output timestamps
         click.echo(json.dumps([f.to_dict(exclude=["created_at", "updated_at"]) for f in files]))
-    elif fmt == "plain":
+    else:
         [click.echo(_uri_to_relpath(f.uri) + "  ", nl=False) for f in files]
+        click.echo()
+
+def output_filetag_list(filetags):
+    ctx = click.get_current_context()
+    fmt = ctx.obj.get("output_format")
+
+    if fmt == "json":
+        # TODO - fix this to output timestamps
+        click.echo(json.dumps([ft.to_dict(exclude=["created_at", "updated_at"]) for ft in filetags]))
+    else:
+        [click.echo(ft.tag.name + "  ", nl=False) for ft in filetags]
         click.echo()
 
 def _uri_to_relpath(uri):
