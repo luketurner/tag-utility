@@ -1,4 +1,3 @@
-# TODO -- wrap click with error handling so we can stop inheriting from ClickException
 from click import ClickException
 
 

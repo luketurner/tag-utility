@@ -1,8 +1,12 @@
 import os.path
 import glob
 from .error import TagException
+import re
 
 import urllib.parse
+import mimetypes
+
+import pony.orm.core
 
 
 def split_version(version_string, num_parts):
@@ -47,12 +51,68 @@ def try_resolve_db(base_path="."):
 
 
 def path_to_uri(path, host=None):
-    return 'file://{}/{}'.format(urllib.parse.quote(host or ''), urllib.parse.quote(os.path.abspath(path)))
+    return "file://{}/{}".format(
+        urllib.parse.quote(host or ""), urllib.parse.quote(os.path.abspath(path))
+    )
+
 
 def uri_to_path(uri):
     parsed_uri = urllib.parse.urlparse(uri)
-    if parsed_uri.scheme != 'file':
-        raise TagException('Unsupported uri scheme: ' + parsed_uri.scheme)
+    if parsed_uri.scheme != "file":
+        raise TagException("Unsupported uri scheme: " + parsed_uri.scheme)
     host = urllib.parse.unquote(parsed_uri.netloc)
     path = urllib.parse.unquote(os.path.relpath(parsed_uri.path))
     return (path, host)
+
+
+def guess_mime_type(filename, default_type="text/plain", extensions=None):
+    """ Tries to guess the MIME type of a file.
+
+    1. If the file's extension matches a key in the ``extensions`` parameter, the associated value is returned.
+    2. Next, the Python mimetypes module is given a chance to guess the mime type.
+    3. If nobody knows the mime type, the ``default_type`` is returned.
+    """
+
+    if not extensions:
+        # FUTURE: Make this easier to configure?
+        extensions = {
+            "sqlite": "application/vnd.sqlite3",
+        }
+        extensions.update(
+            {x: "application/octet-stream" for x in ["exe", "msi", "bin", "o",]}
+        )
+        extensions.update({x: "text/plain" for x in ["md", "rst"]})
+
+    basename = os.path.basename(filename)
+    ext = os.path.splitext(basename)[1]
+
+    # First, if we know the mime type already, just return it.
+    if ext in extensions:
+        return extensions[ext]
+
+    # If we don't know it, give python mimetypes module a chance to guess it
+    py_guess = mimetypes.guess_type(filename)[0]
+    if py_guess:
+        return py_guess
+
+    # If they don't know it either, just return the default.
+    return default_type
+
+
+def parse_integrity_error(model, e):
+    """Accepts an arbitrary error E, and determines whether it's a PonyORM integrity validation exception that we can recover from.
+  If so, this returns the key (i.e. column name) that resulted in the integrity error. If not, the error is re-raised.
+  
+  This logic is based on errors experienced in practice, and may not represent all possible errors that could arise from integrity checks."""
+    if isinstance(e, pony.orm.core.CacheIndexError):
+        regex = (
+            r"for key (\w+) already exists|instance with primary key .*? already exists"
+        )
+    elif isinstance(e, pony.orm.core.TransactionIntegrityError):
+        regex = r"constraint failed: \w+\.(\w+)"
+    else:
+        raise e
+    m = re.search(regex, str(e))
+    if not m:
+        raise e
+    return m.group(1) or "id"

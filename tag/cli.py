@@ -15,7 +15,7 @@ import functools
 import json
 import shlex
 
-from . import ingest_file, connect, version, get_file, get_file_tags
+from . import add_file, connect, version, get_file, get_file_tags
 from .util import try_resolve_db, uri_to_path
 
 import pony.orm as orm
@@ -32,7 +32,12 @@ from .error import TagException
     type=click.Path(),
     help="Specify the tag database to use.",
 )
-@click.option("--output", "-o", default="plain", type=click.Choice(["plain", "json"], case_sensitive=False))
+@click.option(
+    "--output",
+    "-o",
+    default="plain",
+    type=click.Choice(["plain", "json"], case_sensitive=False),
+)
 @click.version_option(version())
 @click.pass_context
 def cli(ctx, database, output):
@@ -61,8 +66,7 @@ def db_session(f):
 @db_session
 def add(conn, file, tag):
     """Add tags to files."""
-    print("add", file, tag)
-    [ingest_file(conn, f, tags=parse_tags(tag)) for f in file]
+    [add_file(conn, f, tags=parse_tags(tag)) for f in file]
 
 
 @cli.command()
@@ -101,7 +105,7 @@ def show(conn, file, tags):
 
     if tags:
         filetags = {}
-        [filetags.update({ ft.tag: ft }) for f in file for ft in get_file_tags(conn, f)]
+        [filetags.update({ft.tag: ft}) for f in file for ft in get_file_tags(conn, f)]
         output_filetag_list(filetags.values())
     else:
         output_file_info(get_file(conn, f) for f in file)
@@ -109,15 +113,15 @@ def show(conn, file, tags):
 
 def parse_tags(tags):
     return {
-        k: v
-        for k, v in map(
-            lambda x: x.split("=", 1) if "=" in x else (x, None), tags
-        )
+        k: v for k, v in map(lambda x: x.split("=", 1) if "=" in x else (x, None), tags)
     }
+
 
 def pretty_dict(d):
     width = max(len(k) for k in d)
-    return "\n".join([" {:>{width}} = {}".format(k, v or "None", width=width) for k, v in d.items()])
+    return "\n".join(
+        [" {:>{width}} = {}".format(k, v or "None", width=width) for k, v in d.items()]
+    )
 
 
 def output_file_info(files):
@@ -138,10 +142,13 @@ def output_file_list(files):
 
     if fmt == "json":
         # TODO - fix this to output timestamps
-        click.echo(json.dumps([f.to_dict(exclude=["created_at", "updated_at"]) for f in files]))
+        click.echo(
+            json.dumps([f.to_dict(exclude=["created_at", "updated_at"]) for f in files])
+        )
     else:
         [click.echo(_uri_to_relpath(f.uri) + "  ", nl=False) for f in files]
         click.echo()
+
 
 def output_filetag_list(filetags):
     ctx = click.get_current_context()
@@ -149,10 +156,15 @@ def output_filetag_list(filetags):
 
     if fmt == "json":
         # TODO - fix this to output timestamps
-        click.echo(json.dumps([ft.to_dict(exclude=["created_at", "updated_at"]) for ft in filetags]))
+        click.echo(
+            json.dumps(
+                [ft.to_dict(exclude=["created_at", "updated_at"]) for ft in filetags]
+            )
+        )
     else:
         [click.echo(ft.tag.name + "  ", nl=False) for ft in filetags]
         click.echo()
+
 
 def _uri_to_relpath(uri):
     return shlex.quote(uri_to_path(uri))
