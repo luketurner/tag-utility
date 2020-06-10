@@ -52,7 +52,7 @@ def try_resolve_db(base_path="."):
 
 def path_to_uri(path, host=None):
     return "file://{}/{}".format(
-        urllib.parse.quote(host or ""), urllib.parse.quote(os.path.abspath(path))
+        urllib.parse.quote(host or ""), urllib.parse.quote(os.path.abspath(path).lstrip("/"))
     )
 
 
