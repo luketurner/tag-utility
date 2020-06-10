@@ -21,6 +21,49 @@ Tags are stored in SQLite database(s) using a well-defined schema. They can be b
 pip install git+https://github.com/luketurner/tag-utility.git
 ```
 
+# CLI Documentation
+
+CLI documentation from `tag --help` can be seen below. (Note, this doesn't include all the documentation for sub-commands.)
+
+```
+Usage: tag [OPTIONS] COMMAND [ARGS]...
+
+  tag is a utility for organizing files in a non-hierarchical way using...
+  guess what... *tags*!
+
+  More specifically, tag provides a CLI for making and interacting with *tag
+  databases*, which are SQLite files with a certain schema.
+
+  For example:
+
+      # adds tag to foo.pdf
+      tag add -t foobar foo.pdf 
+
+      # prints foo.pdf
+      tag ls foobar
+
+Options:
+  -d, --database PATH        Path to the database to use. If it doesn't exist,
+                             it will be created. If unspecified, the first
+                             .tag.sqlite file found in the current directory
+                             (or its parents) will be used. If no databases
+                             are found or specified, an index.tag.sqlite file
+                             will be created.
+
+  -o, --output [plain|json]  Output format to use. The default is 'plain',
+                             which has a simple Unixy format. The 'json'
+                             format includes more information.
+
+  --version                  Show the version and exit.
+  --help                     Show this message and exit.
+
+Commands:
+  add   Adds file(s) to the database with given tags.
+  info  Outputs details about the tag database.
+  ls    Outputs all the files tagged with given tag(s).
+  rm    Removes files and/or tags from the database.
+  show  Outputs details about file(s) in the database.
+```
 
 # Usage as a Library
 
