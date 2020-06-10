@@ -21,6 +21,10 @@ Connection = namedtuple("Connection", ["Config", "File", "Tag", "FileTag", "db"]
 def connect(filename, create_db=True):
     """Context manager for creating a connection to a tag database."""
 
+    # Absolutize relative paths w.r.t. the current working directory,
+    # which is needed because Pony absolutizes w.r.t. the module code directory instead.
+    filename = os.path.abspath(filename)
+
     db = pony.Database()
 
     class Config(db.Entity):
