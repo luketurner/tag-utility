@@ -15,7 +15,7 @@ import functools
 import json
 import shlex
 
-from . import add_file, connect, version, get_file, get_file_tags
+from . import *
 from .util import try_resolve_db, uri_to_path
 
 import pony.orm as orm
@@ -66,7 +66,7 @@ def db_session(f):
 @db_session
 def add(conn, file, tag):
     """Add tags to files."""
-    [add_file(conn, f, tags=parse_tags(tag)) for f in file]
+    [add_file_tags(conn, f, parse_tags(tag)) for f in file]
 
 
 @cli.command()
@@ -81,8 +81,10 @@ def add(conn, file, tag):
 @db_session
 def rm(conn, file, tag):
     """Remove tags from files."""
-    for f in file:
-        print("rm", f, tag)
+    if len(tag) == 0:
+        [delete_file(conn, f) for f in file]
+    else:
+        [delete_file_tags(conn, f, tag) for f in file]
 
 
 @cli.command()
@@ -167,4 +169,4 @@ def output_filetag_list(filetags):
 
 
 def _uri_to_relpath(uri):
-    return shlex.quote(uri_to_path(uri))
+    return shlex.quote(uri_to_path(uri)[0])
