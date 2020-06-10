@@ -170,11 +170,11 @@ def delete_tag(conn, name):
 
 
 def get_file(conn, filename):
-    return pony.get(x for x in conn.File if x.uri == path_to_uri(filename))
+    return pony.get(x for x in conn.File if x.uri == util.path_to_uri(filename))
 
 
 def get_file_tags(conn, filename):
-    return pony.select(x for x in conn.FileTag if x.file.uri == path_to_uri(filename))
+    return pony.select(x for x in conn.FileTag if x.file.uri == util.path_to_uri(filename))
 
 
 def get_tag(conn, name):
