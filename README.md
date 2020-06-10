@@ -47,8 +47,9 @@ Options:
                              it will be created. If unspecified, the first
                              .tag.sqlite file found in the current directory
                              (or its parents) will be used. If no databases
-                             are found or specified, an index.tag.sqlite file
-                             will be created.
+                             are found or specified, the default
+                             index.tag.sqlite database will be used (and
+                             created if missing).
 
   -o, --output [plain|json]  Output format to use. The default is 'plain',
                              which has a simple Unixy format. The 'json'
