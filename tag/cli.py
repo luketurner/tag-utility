@@ -113,6 +113,18 @@ def show(conn, file, tags):
         output_file_info(get_file(conn, f) for f in file)
 
 
+@cli.command()
+@db_session
+def info(conn):
+    """Writes information about the tag database."""
+    output_info(
+        tag_database=click.get_current_context().obj.get("db_filename"),
+        file_count=orm.count(x for x in conn.File) or 0,
+        tag_count=orm.count(x for x in conn.Tag) or 0,
+        filetag_count=orm.count(x for x in conn.FileTag) or 0
+    )
+
+
 def parse_tags(tags):
     return {
         k: v for k, v in map(lambda x: x.split("=", 1) if "=" in x else (x, None), tags)
@@ -122,13 +134,20 @@ def parse_tags(tags):
 def pretty_dict(d):
     width = max(len(k) for k in d)
     return "\n".join(
-        [" {:>{width}} = {}".format(k, v or "None", width=width) for k, v in d.items()]
+        [" {:>{width}} = {}".format(k, "None" if v is None else v, width=width) for k, v in d.items()]
     )
 
 
+def output_info(**kwargs):
+    fmt = click.get_current_context().obj.get("output_format")
+
+    if fmt == "json":
+        click.echo(json.dumps(kwargs))
+    else:
+        click.echo(pretty_dict(kwargs))
+
 def output_file_info(files):
-    ctx = click.get_current_context()
-    fmt = ctx.obj.get("output_format")
+    fmt = click.get_current_context().obj.get("output_format")
 
     dicts_to_print = [f.to_dict(exclude=["created_at", "updated_at"]) for f in files]
 
@@ -139,8 +158,7 @@ def output_file_info(files):
 
 
 def output_file_list(files):
-    ctx = click.get_current_context()
-    fmt = ctx.obj.get("output_format")
+    fmt = click.get_current_context().obj.get("output_format")
 
     if fmt == "json":
         # TODO - fix this to output timestamps
@@ -153,8 +171,7 @@ def output_file_list(files):
 
 
 def output_filetag_list(filetags):
-    ctx = click.get_current_context()
-    fmt = ctx.obj.get("output_format")
+    fmt = click.get_current_context().obj.get("output_format")
 
     if fmt == "json":
         # TODO - fix this to output timestamps
