@@ -68,16 +68,24 @@ Commands:
 
 # Usage as a Library
 
-The `tag` utility can also be imported and used as a Python library. For now, this is considered a power-user mode and isn't fully documented.
+The `tag` utility can also be imported and used as a Python library. For now, this is considered a power-user mode and isn't fully documented, nor is the API versioned.
 
-Example usage:
+Simple usage example:
 
 ``` python
-import tag
+from tag import *
 
-# Add a file to the db with tag mytag=mytagvalue
-with tag.connect("mytags.tag.sqlite"):
-  file_object = tag.ingest_file("myfile.txt", {"mytag": "mytagvalue"})
+with connect("mytags.tag.sqlite") as conn:
+
+    assert len(get_file_tags(conn, "foo.pdf")) == 0
+
+    add_file_tags(conn, "foo.pdf", { "foo": "baz", "bar": None })
+
+    assert len(get_file_tags(conn, "foo.pdf")) == 2
+
+    delete_file_tags(conn, "foo.pdf", ["bar"])
+
+    assert len(get_file_tags(conn, "foo.pdf")) == 1
 ```
 
 
