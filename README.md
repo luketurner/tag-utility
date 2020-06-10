@@ -80,7 +80,7 @@ with tag.connect("mytags.tag.sqlite"):
 ```
 
 
-## Database Schema
+# Database Schema
 
 A tag database has these tables:
 
@@ -92,13 +92,42 @@ A tag database has these tables:
 ![entity relationship diagram](assets/tag_db_schema.png)
 
 
-## Development
+# Development
 
-The following commands are useful when doing development against `tag` itself:
+This section is for folks wanting to make changes to `tag-utility` itself.
+
+Dependencies:
+
+* Python 3.8+
+* Poetry (tested with v1.0.5)
+* Git (tested with v2.25.1)
+
+First, clone the repository and install dependencies:
 
 ``` bash
-poetry install          # install deps (run this first)
-poetry run pytest       # run tests
-poetry run black tag    # format code
-poetry run tag          # run `tag` from source
+git clone https://github.com/luketurner/tag-utility.git
+
+cd tag-utility
+
+poetry install
+```
+
+Then, you should be able to run `tag --help` using:
+
+``` bash
+poetry run tag --help
+```
+
+`tag` roughly hews to a test-driven development style. The test suite is run with:
+
+``` bash
+poetry run pytest
+```
+
+When new features or bugfixes are contributed, the changes must have accompanying acceptance tests if possible.
+
+Code formatting is provided by `black`:
+
+``` bash
+poetry run black tag
 ```
