@@ -30,7 +30,7 @@ from .error import TagException
     "-d",
     default=None,
     type=click.Path(),
-    help="Path to the database to use. If it doesn't exist, it will be created. If unspecified, the first .tag.sqlite file found in the current directory (or its parents) will be used. If no databases are found or specified, an index.tag.sqlite file will be created.",
+    help="Path to the database to use. If it doesn't exist, it will be created. If unspecified, the first .tag.sqlite file found in the current directory (or its parents) will be used. If no databases are found or specified, the default index.tag.sqlite database will be used (and created if missing).",
 )
 @click.option(
     "--output",
