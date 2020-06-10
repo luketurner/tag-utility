@@ -45,6 +45,16 @@ def cli(ctx, database, output):
     """tag is a utility for organizing files in a non-hierarchical way using... guess what... *tags*! 
     
     More specifically, tag provides a CLI for making and interacting with *tag databases*, which are SQLite files with a certain schema.
+    
+    For example:
+
+    \b
+        # adds tag to foo.pdf
+        tag add -t foobar foo.pdf 
+
+    \b
+        # prints foo.pdf
+        tag ls foobar
     """
     ctx.ensure_object(dict)
     database = database or try_resolve_db() or "index.tag.sqlite"
