@@ -5,9 +5,6 @@ import os.path
 import tag.util as util
 from .error import TagException
 
-# These are not used in this module, but re-exposed for library clients.
-from .orm import connect
-
 __version__ = "0.0.1"
 
 
@@ -131,19 +128,19 @@ def add_file_tags(conn, filename, tags=None):
     new_instance = None
 
     for name, value in (tags or {}).items():
+        value = '' if value is None else value # None should be treated identically to an empty string
         tag = add_tag(conn, name=name)
-        new_instance = conn.FileTag(
-            file=file, tag=tag, created_at=created_at, updated_at=updated_at
-        )
+        new_instance = None
         try:
+            new_instance = conn.FileTag(file=file, tag=tag, created_at=created_at, updated_at=updated_at, value=value)
             pony.flush()
             file_tags.append(new_instance)
-        except e:
+        except Exception as e:
             util.parse_integrity_error(conn.FileTag, e)
             if new_instance:
                 new_instance.delete()  # prevent our instance from failing future flushes in the same transaction
             existing_instance = pony.get(
-                x for x in conn.Tag if x.file == file and x.tag == tag
+                x for x in conn.FileTag if x.file == file and x.tag == tag
             )
             existing_instance.set(value=value, updated_at=updated_at)
             pony.flush()
