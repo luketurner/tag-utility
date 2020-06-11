@@ -133,6 +133,8 @@ A tag database has these tables:
 3. The `file_tag` table stores relations between files and tags. Relations can include a value, so this is a little more simple than a pure join table.
 4. The `config` table holds configuration information for later clients.
 
+![entity diagram (see source below)](./assets/tag_database_entity_diagram.svg)
+
 ```plantuml
 @startuml
 
