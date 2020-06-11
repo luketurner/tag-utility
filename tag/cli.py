@@ -21,8 +21,6 @@ from .util import try_resolve_db, uri_to_path
 import pony.orm as orm
 
 from . import search
-from .error import TagException
-
 
 @click.group()
 @click.option(
@@ -107,7 +105,7 @@ def rm(conn, file, tag):
 @click.option("--mime", "-m", multiple=True, help="Only list files with the given MIME type. If specified multiple times, files must match ANY of the values. Values may contain the wildcard character *, e.g. 'text/*'")
 @db_session
 def ls(conn, tag, mime):
-    """Outputs all the files tagged with given tag(s). If no tags are specified, outputs all the files in the database."""
+    """Outputs all the files tagged with given tag(s). If no tags are specified, outputs all the files in the database. If multiple tags are specified, they all must match."""
     output_file_list(search(conn, tags=parse_tags(tag), mime_types=mime))
 
 

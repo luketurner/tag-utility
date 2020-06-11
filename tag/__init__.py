@@ -1,17 +1,23 @@
-import sys
-from sqlite3 import version as sqlite_version
-import pony.orm as pony
 import os.path
-import tag.util as util
-from .error import TagException
-
-__version__ = "0.0.1"
-
+import sys
 
 from collections import namedtuple
-
 from contextlib import contextmanager
 from datetime import datetime
+from sqlite3 import version as sqlite_version
+
+import pony.orm as pony
+from click import ClickException
+
+class TagException(ClickException):
+    """Defines an application-layer exception that can be shown to the user."""
+    pass
+
+
+import tag.util as util
+
+
+__version__ = "0.0.1"
 
 
 Connection = namedtuple("Connection", ["Config", "File", "Tag", "FileTag", "db"])
@@ -78,7 +84,6 @@ def version_info():
 
 
 def add_file(conn, filename):
-
     uri = util.path_to_uri(filename)
     mime_type = util.guess_mime_type(filename)
     name = os.path.basename(filename)
