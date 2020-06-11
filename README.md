@@ -76,15 +76,12 @@ Simple usage example:
 from tag import *
 
 with connect("mytags.tag.sqlite") as conn:
-
     assert len(get_file_tags(conn, "foo.pdf")) == 0
 
     add_file_tags(conn, "foo.pdf", { "foo": "baz", "bar": None })
-
     assert len(get_file_tags(conn, "foo.pdf")) == 2
 
     delete_file_tags(conn, "foo.pdf", ["bar"])
-
     assert len(get_file_tags(conn, "foo.pdf")) == 1
 ```
 
@@ -139,4 +136,5 @@ Code formatting is provided by `black`:
 
 ``` bash
 poetry run black tag
+poetry run black tests
 ```
