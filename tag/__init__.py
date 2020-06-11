@@ -181,15 +181,12 @@ def get_tag(conn, name):
     return pony.get(x for x in conn.Tag if x.name == name)
 
 
-def search(conn, tags):
+def search(conn, tags=None):
 
-    # TODO - investigate efficiency / can we do this better?
+    query = pony.select(f for f in conn.File)
 
-    tags_allowed = pony.select(t.id for t in conn.Tag if t.name in tags)
-
-    query = pony.select(f for f in conn.File if f.file_tags.tag in tags_allowed)
-
-    for tag in tags:
-        query = query.where(lambda f: pony.JOIN(tag in f.file_tags.tag.name))
+    if tags:
+        for name, value in tags.items():
+            query = query.where(lambda f: name in f.file_tags.tag.name)
 
     return query
