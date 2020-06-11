@@ -104,13 +104,11 @@ def rm(conn, file, tag):
 
 @cli.command()
 @click.argument("tag", nargs=-1, type=str)
+@click.option("--mime", "-m", multiple=True, help="Only list files with the given MIME type. If specified multiple times, files must match ANY of the values. Values may contain the wildcard character *, e.g. 'text/*'")
 @db_session
-def ls(conn, tag):
+def ls(conn, tag, mime):
     """Outputs all the files tagged with given tag(s). If no tags are specified, outputs all the files in the database."""
-    if len(tag) == 0:
-        output_file_list(orm.select(f for f in conn.File))
-        return
-    output_file_list(search(conn, tags=parse_tags(tag)))
+    output_file_list(search(conn, tags=parse_tags(tag), mime_types=mime))
 
 
 @cli.command()
@@ -140,9 +138,9 @@ def info(conn):
     )
 
 
-def parse_tags(tags):
+def parse_tags(tags=None):
     return {
-        k: v for k, v in map(lambda x: x.split("=", 1) if "=" in x else (x, None), tags)
+        k: v for k, v in map(lambda x: x.split("=", 1) if "=" in x else (x, None), tags or [])
     }
 
 

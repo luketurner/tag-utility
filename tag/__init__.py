@@ -181,12 +181,19 @@ def get_tag(conn, name):
     return pony.get(x for x in conn.Tag if x.name == name)
 
 
-def search(conn, tags=None):
+def search(conn, tags=None, mime_types=None):
+    tags = tags or {}
+    mime_types = mime_types or []
 
     query = pony.select(f for f in conn.File)
 
-    if tags:
-        for name, value in tags.items():
-            query = query.where(lambda f: name in f.file_tags.tag.name)
+    for name, value in tags.items():
+        query = query.where(lambda f: name in f.file_tags.tag.name)
+
+    for mime in mime_types:
+        if "*" in mime:
+            query = query.where(pony.raw_sql("mime_type GLOB $mime"))
+        else:
+            query = query.where(lambda f: f.mime_type == mime)
 
     return query
