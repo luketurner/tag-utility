@@ -2,7 +2,16 @@
 
 > **WARNING:** `tag` is a work in progress! Use at your own risk!
 
-`tag` is a CLI utility (and Python library) for organizing files in a non-hierarchical way using... *tags*. (Surprise!) A simple example:
+`tag` is a CLI utility (and Python library) for organizing files in a non-hierarchical way using... guess what... *tags*!
+
+I created `tag` because I wanted a file-tagging program that:
+
+1. Is unopinionated about what GUI I should use to view the files.
+2. Plays nicely with the ecosystem of Unixy tools (`cat`, `vim`, `bash`, etc.).
+3. Can search 10,000-file databases without noticeable lag.
+4. Can store tag data in the same directory tree as the files being tagged.
+
+A simple example:
 
 ``` bash
 # adds the tag "foo" with value "bar" to myphoto.jpg
@@ -12,18 +21,47 @@ tag add -t foo=bar myphoto.jpg
 tag ls foo | feh -f -
 ```
 
-Tags are stored in SQLite database(s) using a well-defined schema. They can be bare annotations (e.g. `foo`) or they can have a value (e.g. `foo=bar`). The `tag` utility's focused goal is to read and write the data in these files, which are called *tag databases*.
+Tags are stored in SQLite database(s) using a well-defined schema (called a *tag database*). Tags can be bare annotations (e.g. `foo`) or they can have a value (e.g. `foo=bar`).
+
+The `tag` utility is open-source and MIT licensed.
 
 # Getting Started
 
+Requirements:
+
+* Python 3.8+ (tested with v3.8.2)
+* Pip (tested with v20.0.2)
+* Git (tested with v2.25.1)
+
+Installation:
+
 ``` bash
-# NOTE: Only tested with Python 3.8+
 pip install git+https://github.com/luketurner/tag-utility.git
 ```
 
-# CLI Documentation
+Then you should be able to run:
 
-CLI documentation from `tag --help` can be seen below. (Note, this doesn't include all the documentation for sub-commands.)
+``` bash
+tag --help
+```
+
+Next, you need to create a tag database.
+
+By default, an `index.tag.sqlite` database file will be created in the current directory when you run any (non-help) command.
+
+Depending on your use-case, you may wish to explicitly create a database in a certain place with the `--database`/`-d` option. For example, you could create a "home database" in `~/home.tag.sqlite`:
+
+``` bash
+tag -d ~/home.tag.sqlite info
+```
+
+Once we've created a database, `tag` will default to using that database when running in that directory or any subdirectory.
+
+Now, run `tag --help` to see what other commands ara available. You can pass `--help` to a subcommand (e.g. `tag info --help`) to view detailed help for that subcommand.
+
+# CLI Usage
+
+CLI documentation from `tag --help` can be seen below. (Note, this doesn't include all the documentation for subcommands.)
 
 ```
 Usage: tag [OPTIONS] COMMAND [ARGS]...
@@ -66,7 +104,7 @@ Commands:
   show  Outputs details about file(s) in the database.
 ```
 
-# Usage as a Library
+# Python Library Usage
 
 The `tag` utility can also be imported and used as a Python library. For now, this is considered a power-user mode and isn't fully documented, nor is the API versioned.
 
