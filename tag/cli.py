@@ -79,7 +79,7 @@ def db_session(f):
 @db_session
 def add(conn, file, tag):
     """Adds file(s) to the database with given tags. Files already in the database will be updated in-place."""
-    [add_file_tags(conn, f, parse_tags(tag)) for f in file]
+    [add_filetags(conn, f, parse_tags(tag)) for f in file]
 
 
 @cli.command()
@@ -97,7 +97,7 @@ def rm(conn, file, tag):
     if len(tag) == 0:
         [delete_file(conn, f) for f in file]
     else:
-        [delete_file_tags(conn, f, tag) for f in file]
+        [delete_filetags(conn, f, tag) for f in file]
 
 
 @cli.command()
@@ -118,7 +118,7 @@ def show(conn, file, tags):
 
     if tags:
         filetags = {}
-        [filetags.update({ft.tag: ft}) for f in file for ft in get_file_tags(conn, f)]
+        [filetags.update({ft.tag: ft}) for f in file for ft in get_filetags(conn, f)]
         output_filetag_list(filetags.values())
     else:
         output_file_info(get_file(conn, f) for f in file)

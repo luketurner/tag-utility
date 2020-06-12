@@ -114,13 +114,13 @@ Simple usage example:
 from tag import *
 
 with connect("mytags.tag.sqlite") as conn:
-    assert len(get_file_tags(conn, "foo.pdf")) == 0
+    assert len(get_filetags(conn, "foo.pdf")) == 0
 
-    add_file_tags(conn, "foo.pdf", { "foo": "baz", "bar": None })
-    assert len(get_file_tags(conn, "foo.pdf")) == 2
+    add_filetags(conn, "foo.pdf", { "foo": "baz", "bar": None })
+    assert len(get_filetags(conn, "foo.pdf")) == 2
 
-    delete_file_tags(conn, "foo.pdf", ["bar"])
-    assert len(get_file_tags(conn, "foo.pdf")) == 1
+    delete_filetags(conn, "foo.pdf", ["bar"])
+    assert len(get_filetags(conn, "foo.pdf")) == 1
 ```
 
 
@@ -130,7 +130,7 @@ A tag database has these tables:
 
 1. The `file` table stores all the things being tagged. The table is called `file` for simplicity, but it may contain embedded data or links outside the local filesystem (e.g. HTTP, Git, S3 links).
 2. The `tag` table stores tags. Tags have a unique id besides their name, but their name must also be unique.
-3. The `file_tag` table stores relations between files and tags. Relations can include a value, which is how `foo=bar` style tags are implemented (the tag name is `foo`, the value is `bar`).
+3. The `filetag` table stores relations between files and tags. Relations can include a value, which is how `foo=bar` style tags are implemented (the tag name is `foo`, the value is `bar`).
 4. The `config` table holds configuration information for later clients.
 
 ![entity diagram (see source below)](./assets/tag_database_entity_diagram.svg)

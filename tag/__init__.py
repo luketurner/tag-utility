@@ -44,7 +44,7 @@ def connect(filename, create_db=True):
         name = pony.Optional(str)
         description = pony.Optional(str)
         data = pony.Optional(bytes)
-        file_tags = pony.Set("FileTag", cascade_delete=True)
+        filetags = pony.Set("FileTag", cascade_delete=True)
         created_at = pony.Required(datetime)
         updated_at = pony.Required(datetime)
 
@@ -52,7 +52,7 @@ def connect(filename, create_db=True):
         id = pony.PrimaryKey(int, auto=True)
         name = pony.Required(str, unique=True, index=True)
         description = pony.Optional(str)
-        file_tags = pony.Set("FileTag", cascade_delete=True)
+        filetags = pony.Set("FileTag", cascade_delete=True)
         created_at = pony.Required(datetime)
         updated_at = pony.Required(datetime)
 
@@ -128,9 +128,9 @@ def add_tag(conn, name):
         return existing_instance
 
 
-def add_file_tags(conn, filename, tags=None):
+def add_filetags(conn, filename, tags=None):
     file = add_file(conn, filename)
-    file_tags = []
+    filetags = []
 
     created_at = datetime.now()
     updated_at = datetime.now()
@@ -143,7 +143,7 @@ def add_file_tags(conn, filename, tags=None):
         try:
             new_instance = conn.FileTag(file=file, tag=tag, created_at=created_at, updated_at=updated_at, value=value)
             pony.flush()
-            file_tags.append(new_instance)
+            filetags.append(new_instance)
         except Exception as e:
             util.parse_integrity_error(conn.FileTag, e)
             if new_instance:
@@ -153,16 +153,16 @@ def add_file_tags(conn, filename, tags=None):
             )
             existing_instance.set(value=value, updated_at=updated_at)
             pony.flush()
-            file_tags.append(existing_instance)
+            filetags.append(existing_instance)
 
-    return file_tags
+    return filetags
 
 
 def delete_file(conn, filename):
     return pony.delete(x for x in conn.File if x.uri == util.path_to_uri(filename))
 
 
-def delete_file_tags(conn, filename, tags):
+def delete_filetags(conn, filename, tags):
     return pony.delete(
         x
         for x in conn.FileTag
@@ -178,7 +178,7 @@ def get_file(conn, filename):
     return pony.get(x for x in conn.File if x.uri == util.path_to_uri(filename))
 
 
-def get_file_tags(conn, filename):
+def get_filetags(conn, filename):
     return pony.select(x for x in conn.FileTag if x.file.uri == util.path_to_uri(filename))
 
 
@@ -193,7 +193,7 @@ def search(conn, tags=None, mime_types=None):
     query = pony.select(f for f in conn.File)
 
     for name, value in tags.items():
-        query = query.where(lambda f: name in f.file_tags.tag.name)
+        query = query.where(lambda f: name in f.filetags.tag.name)
 
     for mime in mime_types:
         if "*" in mime:
