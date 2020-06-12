@@ -4,26 +4,24 @@
 
 `tag` is a CLI utility (and Python library) for organizing files in a non-hierarchical way using... guess what... *tags*!
 
+A simple example:
+
+``` bash
+# adds the tag "foo" to myphoto.jpg
+tag add -t foo myphoto.jpg
+
+# prints myphoto.jpg
+tag ls foo
+```
+
+Tags are stored in a SQLite database (called a *tag database*) with a well-defined schema. Tags can be bare annotations (e.g. `foo`) or they can have a value (e.g. `foo=bar`).
+
 I created `tag` because I wanted a file-tagging program that:
 
 1. Is unopinionated about what GUI I should use to view the files.
 2. Plays nicely with the ecosystem of Unixy tools (`cat`, `vim`, `bash`, etc.).
 3. Can search 10,000-file databases without noticeable lag.
 4. Can store tag data in the same directory tree as the files being tagged.
-
-A simple example:
-
-``` bash
-# adds the tag "foo" with value "bar" to myphoto.jpg
-tag add -t foo=bar myphoto.jpg
-
-# opens myphoto.jpg in feh image viewer
-tag ls foo | feh -f -
-```
-
-Tags are stored in SQLite database(s) using a well-defined schema (called a *tag database*). Tags can be bare annotations (e.g. `foo`) or they can have a value (e.g. `foo=bar`).
-
-The `tag` utility is open-source and MIT licensed.
 
 # Getting Started
 
