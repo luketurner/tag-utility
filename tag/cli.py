@@ -15,12 +15,20 @@ import functools
 import json
 import shlex
 
-from . import *
-from .util import try_resolve_db, uri_to_path
+import tag.util as util
 
-import pony.orm as orm
-
-from . import search
+from tag import (
+    connect,
+    add_filetags,
+    delete_file,
+    delete_filetag,
+    get_file,
+    get_tags_for_file,
+    count_files,
+    count_tags,
+    count_filetags,
+    version,
+)
 
 
 @click.group()
@@ -56,7 +64,7 @@ def cli(ctx, database, output):
         tag ls foobar
     """
     ctx.ensure_object(dict)
-    database = database or try_resolve_db() or "index.tag.sqlite"
+    database = database or util.try_resolve_db() or "index.tag.sqlite"
     if not os.path.isfile(database) and database[-11:] != ".tag.sqlite":
         database += ".tag.sqlite"
     ctx.obj["db_filename"] = database
@@ -66,8 +74,8 @@ def cli(ctx, database, output):
 def db_session(f):
     @click.pass_context
     def new_func(ctx, *args, **kwargs):
-        with connect(ctx.obj["db_filename"]) as conn:
-            return ctx.invoke(f, conn=conn, *args, **kwargs)
+        connect(ctx.obj["db_filename"])
+        return ctx.invoke(f, *args, **kwargs)
 
     return functools.update_wrapper(new_func, f)
 
@@ -82,9 +90,9 @@ def db_session(f):
     help="Specify a tag to add. Can be a simple tag like 'foo', or a key-value pair like 'foo=bar'.",
 )
 @db_session
-def add(conn, file, tag):
+def add(file, tag):
     """Adds file(s) to the database with given tags. Files already in the database will be updated in-place."""
-    [add_filetags(conn, f, parse_tags(tag)) for f in file]
+    [add_filetags(f, parse_tags(tag)) for f in file]
 
 
 @cli.command()
@@ -93,12 +101,12 @@ def add(conn, file, tag):
     "--tag", "-t", multiple=True, metavar="NAME", help="Specify a tag to remove.",
 )
 @db_session
-def rm(conn, file, tag):
+def rm(file, tag):
     """Removes files and/or tags from the database. The specified tags will be removed from the specified files. If no tags are specified, the files are wholly removed from the database. (Note, this does not affect your actual filesystem.)"""
     if len(tag) == 0:
-        [delete_file(conn, f) for f in file]
+        [delete_file(f) for f in file]
     else:
-        [delete_filetags(conn, f, tag) for f in file]
+        [delete_filetag(f, t) for t in tag for f in file]
 
 
 @cli.command()
@@ -110,9 +118,10 @@ def rm(conn, file, tag):
     help="Only list files with the given MIME type. If specified multiple times, files must match ANY of the values. Values may contain the wildcard character *, e.g. 'text/*'",
 )
 @db_session
-def ls(conn, tag, mime):
+def ls(tag, mime):
     """Outputs all the files tagged with given tag(s). If no tags are specified, outputs all the files in the database. If multiple tags are specified, they all must match."""
-    output_file_list(search(conn, tags=parse_tags(tag), mime_types=mime))
+    # TODO -- still broken
+    output_file_list(search(tags=parse_tags(tag), mime_types=mime))
 
 
 @cli.command()
@@ -121,26 +130,27 @@ def ls(conn, tag, mime):
     "--tags", "-t", is_flag=True, help="Show applied tags instead of general metadata."
 )
 @db_session
-def show(conn, file, tags):
+def show(file, tags):
     """Outputs details about file(s) in the database."""
-
     if tags:
         filetags = {}
-        [filetags.update({ft.tag: ft}) for f in file for ft in get_filetags(conn, f)]
+        for f in file:
+            for t in get_tags_for_file(f):
+                filetags[t['id']] = t
         output_filetag_list(filetags.values())
     else:
-        output_file_info(get_file(conn, f) for f in file)
+        output_file_info(get_file(f) for f in file)
 
 
 @cli.command()
 @db_session
-def info(conn):
+def info():
     """Outputs details about the tag database."""
     output_info(
         tag_database=click.get_current_context().obj.get("db_filename"),
-        file_count=orm.count(x for x in conn.File) or 0,
-        tag_count=orm.count(x for x in conn.Tag) or 0,
-        filetag_count=orm.count(x for x in conn.FileTag) or 0,
+        file_count=count_files() or 0,
+        tag_count=count_tags() or 0,
+        filetag_count=count_filetags() or 0,
     )
 
 
@@ -175,12 +185,10 @@ def output_info(**kwargs):
 def output_file_info(files):
     fmt = click.get_current_context().obj.get("output_format")
 
-    dicts_to_print = [f.to_dict(exclude=["created_at", "updated_at"]) for f in files]
-
     if fmt == "json":
-        click.echo(json.dumps(dicts_to_print))
+        click.echo(json.dumps(files))
     else:
-        click.echo("\n\n".join(pretty_dict(d) for d in dicts_to_print))
+        click.echo("\n\n".join(pretty_dict(d) for d in files))
 
 
 def output_file_list(files):
@@ -188,11 +196,9 @@ def output_file_list(files):
 
     if fmt == "json":
         # TODO - fix this to output timestamps
-        click.echo(
-            json.dumps([f.to_dict(exclude=["created_at", "updated_at"]) for f in files])
-        )
+        click.echo(json.dumps(files))
     else:
-        [click.echo(_uri_to_relpath(f.uri) + "  ", nl=False) for f in files]
+        [click.echo(_uri_to_relpath(f["uri"]) + "  ", nl=False) for f in files]
         click.echo()
 
 
@@ -201,15 +207,11 @@ def output_filetag_list(filetags):
 
     if fmt == "json":
         # TODO - fix this to output timestamps
-        click.echo(
-            json.dumps(
-                [ft.to_dict(exclude=["created_at", "updated_at"]) for ft in filetags]
-            )
-        )
+        click.echo(json.dumps(filetags))
     else:
-        [click.echo(ft.tag.name + "  ", nl=False) for ft in filetags]
+        [click.echo(ft["name"] + "  ", nl=False) for ft in filetags]
         click.echo()
 
 
 def _uri_to_relpath(uri):
-    return shlex.quote(uri_to_path(uri)[0])
+    return shlex.quote(util.uri_to_path(uri)[0])
