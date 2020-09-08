@@ -7,7 +7,14 @@ import mimetypes
 
 import pony.orm.core
 
-from . import TagException
+from click import ClickException
+
+
+class TagException(ClickException):
+    """Defines an application-layer exception that can be shown to the user."""
+
+    pass
+
 
 def split_version(version_string, num_parts):
     """Given a version string, splits it into a ``num_parts``-length tuple. If the string has too many or too few parts, an error is raised."""
@@ -52,7 +59,8 @@ def try_resolve_db(base_path="."):
 
 def path_to_uri(path, host=None):
     return "file://{}/{}".format(
-        urllib.parse.quote(host or ""), urllib.parse.quote(os.path.abspath(path).lstrip("/"))
+        urllib.parse.quote(host or ""),
+        urllib.parse.quote(os.path.abspath(path).lstrip("/")),
     )
 
 

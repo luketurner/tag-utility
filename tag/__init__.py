@@ -7,68 +7,15 @@ from datetime import datetime
 from sqlite3 import version as sqlite_version
 
 import pony.orm as pony
-from click import ClickException
 
-class TagException(ClickException):
-    """Defines an application-layer exception that can be shown to the user."""
-    pass
-
-
+import pugsql
+import urllib.parse
 import tag.util as util
+
+query = pugsql.module(os.path.dirname(__file__))
 
 
 __version__ = "0.0.1"
-
-
-Connection = namedtuple("Connection", ["Config", "File", "Tag", "FileTag", "db"])
-
-
-@contextmanager
-def connect(filename, create_db=True):
-    """Context manager for creating a connection to a tag database."""
-
-    # Absolutize relative paths w.r.t. the current working directory,
-    # which is needed because Pony absolutizes w.r.t. the module code directory instead.
-    filename = os.path.abspath(filename)
-
-    db = pony.Database()
-
-    class Config(db.Entity):
-        key = pony.PrimaryKey(str)
-        value = pony.Optional(str)
-
-    class File(db.Entity):
-        id = pony.PrimaryKey(int, auto=True)
-        uri = pony.Required(str, unique=True, index=True)
-        mime_type = pony.Optional(str)
-        name = pony.Optional(str)
-        description = pony.Optional(str)
-        data = pony.Optional(bytes)
-        filetags = pony.Set("FileTag", cascade_delete=True)
-        created_at = pony.Required(datetime)
-        updated_at = pony.Required(datetime)
-
-    class Tag(db.Entity):
-        id = pony.PrimaryKey(int, auto=True)
-        name = pony.Required(str, unique=True, index=True)
-        description = pony.Optional(str)
-        filetags = pony.Set("FileTag", cascade_delete=True)
-        created_at = pony.Required(datetime)
-        updated_at = pony.Required(datetime)
-
-    class FileTag(db.Entity):
-        file = pony.Required(File, index=True)
-        tag = pony.Required(Tag, index=True)
-        pony.PrimaryKey(file, tag)
-        value = pony.Optional(str, index=True)
-        created_at = pony.Required(datetime)
-        updated_at = pony.Required(datetime)
-
-    db.bind(provider="sqlite", filename=filename, create_db=create_db)
-    db.generate_mapping(create_tables=create_db)
-
-    with pony.db_session:
-        yield Connection(db=db, Config=Config, File=File, Tag=Tag, FileTag=FileTag)
 
 
 def version():
@@ -83,122 +30,95 @@ def version_info():
     return map(int, __version__.split("."))
 
 
-def add_file(conn, filename):
-    uri = util.path_to_uri(filename)
-    mime_type = util.guess_mime_type(filename)
-    name = os.path.basename(filename)
-    created_at = datetime.now()
-    updated_at = datetime.now()
-    new_instance = None
-    try:
-        new_instance = conn.File(
-            uri=uri,
-            mime_type=mime_type,
-            name=name,
-            created_at=created_at,
-            updated_at=updated_at,
-        )
-        pony.flush()
-        return new_instance
-    except Exception as e:
-        util.parse_integrity_error(conn.File, e)
-        if new_instance:
-            new_instance.delete()  # prevent our instance from failing future flushes in the same transaction
-
-        existing_instance = pony.get(x for x in conn.File if x.uri == uri)
-        existing_instance.set(mime_type=mime_type, name=name, updated_at=updated_at)
-        pony.flush()
-        return existing_instance
+def connect(filename, migrate=False):
+    conn_url = f"sqlite:///file:{urllib.parse.quote(filename)}?mode=rwc&uri=true"
+    query.connect(conn_url)
+    if migrate:
+        query.create_table_file()
+        query.create_table_tag()
+        query.create_table_filetag()
 
 
-def add_tag(conn, name):
-    created_at = datetime.now()
-    updated_at = datetime.now()
-    new_instance = None
-    try:
-        new_instance = conn.Tag(name=name, created_at=created_at, updated_at=updated_at)
-        pony.flush()
-        return new_instance
-    except Exception as e:
-        util.parse_integrity_error(conn.Tag, e)
-        if new_instance:
-            new_instance.delete()  # prevent our instance from failing future flushes in the same transaction
-        existing_instance = pony.get(x for x in conn.Tag if x.name == name)
-        pony.flush()
-        return existing_instance
-
-
-def add_filetags(conn, filename, tags=None):
-    file = add_file(conn, filename)
-    filetags = []
-
-    created_at = datetime.now()
-    updated_at = datetime.now()
-    new_instance = None
-
-    for name, value in (tags or {}).items():
-        value = '' if value is None else value # None should be treated identically to an empty string
-        tag = add_tag(conn, name=name)
-        new_instance = None
-        try:
-            new_instance = conn.FileTag(file=file, tag=tag, created_at=created_at, updated_at=updated_at, value=value)
-            pony.flush()
-            filetags.append(new_instance)
-        except Exception as e:
-            util.parse_integrity_error(conn.FileTag, e)
-            if new_instance:
-                new_instance.delete()  # prevent our instance from failing future flushes in the same transaction
-            existing_instance = pony.get(
-                x for x in conn.FileTag if x.file == file and x.tag == tag
-            )
-            existing_instance.set(value=value, updated_at=updated_at)
-            pony.flush()
-            filetags.append(existing_instance)
-
-    return filetags
-
-
-def delete_file(conn, filename):
-    return pony.delete(x for x in conn.File if x.uri == util.path_to_uri(filename))
-
-
-def delete_filetags(conn, filename, tags):
-    return pony.delete(
-        x
-        for x in conn.FileTag
-        if x.file.uri == util.path_to_uri(filename) and x.tag.name in tags
+def add_file(filename, description=None, mime_type=None, name=None):
+    query.add_file(
+        uri=util.path_to_uri(filename),
+        mime_type=mime_type or util.guess_mime_type(filename),
+        name=name or os.path.basename(filename),
+        description=description
     )
 
 
-def delete_tag(conn, name):
-    return pony.delete(x for x in conn.Tag if x.name == name)
+def add_tag(name, description=None):
+    query.add_tag(name=name, description=description)
 
 
-def get_file(conn, filename):
-    return pony.get(x for x in conn.File if x.uri == util.path_to_uri(filename))
+def add_filetags(filename, tags, create_tags=True, create_file=True):
+    file_uri = util.path_to_uri(filename)
+
+    if create_file:
+        add_file(filename)
+
+    if create_tags:
+        query.add_tag(*[
+            { "name": name, "description": None }
+            for name in tags.keys()
+        ])
+
+    query.add_filetag(*[
+        {"file_uri": file_uri, "tag_name": name, "tag_value": value}
+        for name, value in tags.items()
+    ])
 
 
-def get_filetags(conn, filename):
-    return pony.select(x for x in conn.FileTag if x.file.uri == util.path_to_uri(filename))
+def get_file(filename):
+    return query.get_file(uri=util.path_to_uri(filename))
+
+def get_tag(name):
+    return query.get_tag(name=name)
+
+def get_filetag(filename, tagname):
+    return query.get_filetag(file_uri=util.path_to_uri(filename), tag_name=tagname)
+
+def get_tags_for_file(filename, limit=None):
+    return query.get_tags_for_file(file_uri=util.path_to_uri(filename), limit=limit)
+
+def get_files_for_tag(tagname, limit=None):
+    return query.get_tags_for_file(tag_name=tagname, limit=limit)
 
 
-def get_tag(conn, name):
-    return pony.get(x for x in conn.Tag if x.name == name)
+def delete_file(filename):
+    return query.delete_file(uri=util.path_to_uri(filename))
+
+def delete_tag(name):
+    return query.delete_tag(name=name)
+
+def delete_filetag(filename, tagname):
+    return query.delete_filetag(file_uri=util.path_to_uri(filename), tag_name=tagname)
+
+def count_files():
+    return query.count_files()
 
 
-def search(conn, tags=None, mime_types=None):
-    tags = tags or {}
-    mime_types = mime_types or []
+def count_filetags():
+    return query.count_filetags()
 
-    query = pony.select(f for f in conn.File)
 
-    for name, value in tags.items():
-        query = query.where(lambda f: name in f.filetags.tag.name)
+def count_tags():
+    return query.count_tags()
 
-    for mime in mime_types:
-        if "*" in mime:
-            query = query.where(pony.raw_sql("mime_type GLOB $mime"))
-        else:
-            query = query.where(lambda f: f.mime_type == mime)
+# def search(conn, tags=None, mime_types=None):
+#     tags = tags or {}
+#     mime_types = mime_types or []
 
-    return query
+#     query = pony.select(f for f in conn.File)
+
+#     for name, value in tags.items():
+#         query = query.where(lambda f: name in f.filetags.tag.name)
+
+#     for mime in mime_types:
+#         if "*" in mime:
+#             query = query.where(pony.raw_sql("mime_type GLOB $mime"))
+#         else:
+#             query = query.where(lambda f: f.mime_type == mime)
+
+#     return query

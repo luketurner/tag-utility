@@ -22,6 +22,7 @@ import pony.orm as orm
 
 from . import search
 
+
 @click.group()
 @click.option(
     "--database",
@@ -35,7 +36,7 @@ from . import search
     "-o",
     default="plain",
     type=click.Choice(["plain", "json"], case_sensitive=False),
-    help="Output format to use. The default is 'plain', which has a simple Unixy format. The 'json' format includes more information."
+    help="Output format to use. The default is 'plain', which has a simple Unixy format. The 'json' format includes more information.",
 )
 @click.version_option(version())
 @click.pass_context
@@ -74,7 +75,11 @@ def db_session(f):
 @cli.command()
 @click.argument("file", nargs=-1, type=click.Path(exists=True))
 @click.option(
-    "--tag", "-t", multiple=True, metavar="NAME[=VALUE]", help="Specify a tag to add. Can be a simple tag like 'foo', or a key-value pair like 'foo=bar'."
+    "--tag",
+    "-t",
+    multiple=True,
+    metavar="NAME[=VALUE]",
+    help="Specify a tag to add. Can be a simple tag like 'foo', or a key-value pair like 'foo=bar'.",
 )
 @db_session
 def add(conn, file, tag):
@@ -85,11 +90,7 @@ def add(conn, file, tag):
 @cli.command()
 @click.argument("file", nargs=-1, type=click.Path(exists=True))
 @click.option(
-    "--tag",
-    "-t",
-    multiple=True,
-    metavar="NAME",
-    help="Specify a tag to remove.",
+    "--tag", "-t", multiple=True, metavar="NAME", help="Specify a tag to remove.",
 )
 @db_session
 def rm(conn, file, tag):
@@ -102,7 +103,12 @@ def rm(conn, file, tag):
 
 @cli.command()
 @click.argument("tag", nargs=-1, type=str)
-@click.option("--mime", "-m", multiple=True, help="Only list files with the given MIME type. If specified multiple times, files must match ANY of the values. Values may contain the wildcard character *, e.g. 'text/*'")
+@click.option(
+    "--mime",
+    "-m",
+    multiple=True,
+    help="Only list files with the given MIME type. If specified multiple times, files must match ANY of the values. Values may contain the wildcard character *, e.g. 'text/*'",
+)
 @db_session
 def ls(conn, tag, mime):
     """Outputs all the files tagged with given tag(s). If no tags are specified, outputs all the files in the database. If multiple tags are specified, they all must match."""
@@ -111,7 +117,9 @@ def ls(conn, tag, mime):
 
 @cli.command()
 @click.argument("file", nargs=-1, type=click.Path())
-@click.option("--tags", "-t", is_flag=True, help="Show applied tags instead of general metadata.")
+@click.option(
+    "--tags", "-t", is_flag=True, help="Show applied tags instead of general metadata."
+)
 @db_session
 def show(conn, file, tags):
     """Outputs details about file(s) in the database."""
@@ -132,20 +140,26 @@ def info(conn):
         tag_database=click.get_current_context().obj.get("db_filename"),
         file_count=orm.count(x for x in conn.File) or 0,
         tag_count=orm.count(x for x in conn.Tag) or 0,
-        filetag_count=orm.count(x for x in conn.FileTag) or 0
+        filetag_count=orm.count(x for x in conn.FileTag) or 0,
     )
 
 
 def parse_tags(tags=None):
     return {
-        k: v for k, v in map(lambda x: x.split("=", 1) if "=" in x else (x, None), tags or [])
+        k: v
+        for k, v in map(
+            lambda x: x.split("=", 1) if "=" in x else (x, None), tags or []
+        )
     }
 
 
 def pretty_dict(d):
     width = max(len(k) for k in d)
     return "\n".join(
-        [" {:>{width}} = {}".format(k, "None" if v is None else v, width=width) for k, v in d.items()]
+        [
+            " {:>{width}} = {}".format(k, "None" if v is None else v, width=width)
+            for k, v in d.items()
+        ]
     )
 
 
@@ -156,6 +170,7 @@ def output_info(**kwargs):
         click.echo(json.dumps(kwargs))
     else:
         click.echo(pretty_dict(kwargs))
+
 
 def output_file_info(files):
     fmt = click.get_current_context().obj.get("output_format")

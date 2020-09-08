@@ -12,8 +12,13 @@ def touch(filename, content="test-content"):
 @pytest.fixture
 def conn(tmpdir):
     with tag.connect(os.path.join(tmpdir, "testdb.sqlite")) as c:
-        yield c
+        yield None
 
+@pytest.fixture
+def tmpdb(tmpdir):
+    filename = os.path.join(tmpdir, "testdb.sqlite")
+    tag.connect(filename, migrate=True)
+    return filename
 
 @pytest.fixture
 def tmpfile(tmpdir):
@@ -26,5 +31,5 @@ def tmpfiles(tmpdir):
 
 
 @pytest.fixture
-def sample_filetag(conn, tmpfile):
-    yield tag.add_filetags(conn, tmpfile, {"testtag": "testvalue"})
+def sample_filetag(tmpdb, tmpfile):
+    yield tag.add_filetags(tmpfile, {"testtag": "testvalue"})
