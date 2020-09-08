@@ -16,7 +16,9 @@ def test_add_file_should_update_existing_file(tmpdb, tmpfile):
     assert tag.count_files() == 1
 
 
-def test_add_file_should_not_update_existing_file_if_filename_different(tmpdb, tmpfiles):
+def test_add_file_should_not_update_existing_file_if_filename_different(
+    tmpdb, tmpfiles
+):
     [tag.add_file(x) for x in tmpfiles]
     assert tag.count_files() == len(tmpfiles)
 
