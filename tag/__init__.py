@@ -39,6 +39,10 @@ def connect(filename, migrate=False):
         query.create_table_filetag()
 
 
+def disconnect():
+    query.disconnect()
+
+
 def add_file(filename, description=None, mime_type=None, name=None):
     query.add_file(
         uri=util.path_to_uri(filename),
