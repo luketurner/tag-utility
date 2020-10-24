@@ -1,6 +1,6 @@
 -- :name add_file
 insert into file (uri, name, description, mime_type, created_at, updated_at)
-         values (:uri, :name, :description, :mime_type, current_timestamp, current_timestamp)
+         values (:uri, :name, coalesce(:description, ''), :mime_type, current_timestamp, current_timestamp)
 on conflict(uri) do update set updated_at=current_timestamp,
                                name=coalesce(:name, name),
                                mime_type=coalesce(:mime_type, mime_type),
@@ -8,7 +8,7 @@ on conflict(uri) do update set updated_at=current_timestamp,
 
 -- :name add_tag
 insert into tag (name, description, created_at, updated_at)
-         values (:name, :description, current_timestamp, current_timestamp)
+         values (:name, coalesce(:description, ''), current_timestamp, current_timestamp)
 on conflict(name) do update set updated_at=current_timestamp,
                                 description=coalesce(:description, description);
 

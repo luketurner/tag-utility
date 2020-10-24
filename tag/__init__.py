@@ -50,12 +50,12 @@ def add_file(filename, description=None, mime_type=None, name=None):
         uri=util.path_to_uri(filename),
         mime_type=mime_type or util.guess_mime_type(filename),
         name=name or os.path.basename(filename),
-        description=description or "",
+        description=description,
     )
 
 
 def add_tag(name, description=None):
-    query.add_tag(name=name, description=description or "")
+    query.add_tag(name=name, description=description)
 
 
 def add_filetags(filename, tags, create_tags=True, create_file=True):
@@ -68,7 +68,7 @@ def add_filetags(filename, tags, create_tags=True, create_file=True):
         return
 
     if create_tags:
-        query.add_tag(*[{"name": name, "description": ""} for name in tags.keys()])
+        query.add_tag(*[{"name": name, "description": None} for name in tags.keys()])
 
     query.add_filetag(
         *[
