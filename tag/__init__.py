@@ -31,6 +31,8 @@ def version_info():
 
 
 def connect(filename, migrate=False):
+    """Opens a connection to the SQLite database specified by filename, which may or may not already exist.
+    If the migration argument is True, the database schema will be created."""
     conn_url = f"sqlite:///file:{urllib.parse.quote(filename)}?mode=rwc&uri=true"
     query.connect(conn_url)
     if migrate:
