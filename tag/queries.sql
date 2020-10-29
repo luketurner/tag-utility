@@ -57,3 +57,10 @@ select count(*) from file;
 
 -- :name count_filetags :scalar
 select count(*) from filetag;
+
+-- :name search_filetags :many
+select * from filetag, 
+              file on filetag.file = file.id,
+              tag on filetag.tag = tag.id
+where case when :filter_tags then tag.name in :tags else true end
+  and case when :filter_exclude_tags then tag.name not in :exclude_tags else true end;

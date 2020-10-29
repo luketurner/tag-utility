@@ -122,19 +122,12 @@ def count_tags():
     return query.count_tags()
 
 
-# def search(conn, tags=None, mime_types=None):
-#     tags = tags or {}
-#     mime_types = mime_types or []
-
-#     query = pony.select(f for f in conn.File)
-
-#     for name, value in tags.items():
-#         query = query.where(lambda f: name in f.filetags.tag.name)
-
-#     for mime in mime_types:
-#         if "*" in mime:
-#             query = query.where(pony.raw_sql("mime_type GLOB $mime"))
-#         else:
-#             query = query.where(lambda f: f.mime_type == mime)
-
-#     return query
+def search_filetags(tags=None, exclude_tags=None):
+    tags = tags or []
+    exclude_tags = exclude_tags or []
+    return query.search_filetags(
+        filter_tags=len(tags) > 0,
+        filter_exclude_tags=len(exclude_tags) > 0,
+        tags=tags,
+        exclude_tags=exclude_tags,
+    )
