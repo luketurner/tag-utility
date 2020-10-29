@@ -122,12 +122,20 @@ def count_tags():
     return query.count_tags()
 
 
-def search_filetags(tags=None, exclude_tags=None):
-    tags = tags or []
-    exclude_tags = exclude_tags or []
+def search_filetags(
+    tags=None, exclude_tags=None, mime_types=None, exclude_mime_types=None
+):
     return query.search_filetags(
-        filter_tags=len(tags) > 0,
-        filter_exclude_tags=len(exclude_tags) > 0,
-        tags=tags,
-        exclude_tags=exclude_tags,
+        tags=tags or [],
+        exclude_tags=exclude_tags or [],
+        mime_types=mime_types or [],
+        exclude_mime_types=exclude_mime_types or [],
+        # Note -- these filter_foo conditionals are used in the query to determine whether the client intended
+        # to filter based on the particular element. This is done in Python instead of calculating it in SQL, because
+        # I don't know how to determine whether a list parameter is empty in SQL.
+        # Possible TODO -- handle this better
+        filter_tags=tags is not None,
+        filter_exclude_tags=exclude_tags is not None,
+        filter_mime_types=mime_types is not None,
+        filter_exclude_mime_types=exclude_mime_types is not None,
     )

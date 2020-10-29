@@ -63,4 +63,6 @@ select * from filetag,
               file on filetag.file = file.id,
               tag on filetag.tag = tag.id
 where case when :filter_tags then tag.name in :tags else true end
-  and case when :filter_exclude_tags then tag.name not in :exclude_tags else true end;
+  and case when :filter_exclude_tags then tag.name not in :exclude_tags else true end
+  and case when :filter_mime_types then file.mime_type in :mime_types else true end
+  and case when :filter_exclude_mime_types then file.mime_type not in :exclude_mime_types else true end;

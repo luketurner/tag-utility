@@ -19,7 +19,7 @@ def tmpdb(tmpdir):
 
 @pytest.fixture
 def tmpfile(tmpdir):
-    yield touch(os.path.join(tmpdir, "test-filename"))
+    yield touch(os.path.join(tmpdir, "test-filename.txt"))
 
 
 @pytest.fixture

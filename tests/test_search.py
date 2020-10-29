@@ -32,3 +32,17 @@ def test_search_should_exclude_tags_based_on_exclude_tags(
 ):
     files = list(tag.search_filetags(exclude_tags=["testtag"]))
     assert len(files) == 0
+
+
+def test_search_should_return_filetags_matching_any_mime_types(
+    tmpdb, tmpfile, sample_filetag
+):
+    files = list(tag.search_filetags(mime_types=["text/plain", "foo/bar"]))
+    assert len(files) == 1
+
+
+def test_search_should_exclude_filetags_with_exclude_mime_types(
+    tmpdb, tmpfile, sample_filetag
+):
+    files = list(tag.search_filetags(exclude_mime_types=["text/plain"]))
+    assert len(files) == 0
