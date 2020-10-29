@@ -113,15 +113,34 @@ def rm(file, tag):
 @cli.command()
 @click.argument("tag", nargs=-1, type=str)
 @click.option(
+    "--exclude-tag",
+    "-e",
+    multiple=True,
+    help="Exclude files with the given tag, even if they match other criteria. If specified multiple times, files with ANY of the specified tags will be excluded.",
+)
+@click.option(
     "--mime",
     "-m",
     multiple=True,
-    help="Only list files with the given MIME type. If specified multiple times, files must match ANY of the values. Values may contain the wildcard character *, e.g. 'text/*'",
+    help="Outputs files with the given MIME type. If specified multiple times, files must match ANY of the values.",
+)
+@click.option(
+    "--exclude-mime",
+    "-M",
+    multiple=True,
+    help="Exclude files with the given MIME type, even if they match other criteria. If specified multiple times, files with ANY of the specified values will be excluded.",
 )
 @db_session
-def ls(tag, mime):
-    """Outputs all the files tagged with given tag(s). If no tags are specified, outputs all the files in the database. If multiple tags are specified, they all must match."""
-    output_file_list(search_filetags(tags=tag))
+def ls(tag, exclude_tag, mime, exclude_mime):
+    """Outputs all the files tagged with given tag(s). If no tags are specified, outputs all the files in the database. If multiple tags are specified, outputs files matching ANY of the tags."""
+    output_file_list(
+        search_filetags(
+            tags=tag if len(tag) > 0 else None,
+            exclude_tags=exclude_tag if len(exclude_tag) > 0 else None,
+            mime_types=mime if len(mime) > 0 else None,
+            exclude_mime_types=exclude_mime if len(exclude_mime) > 0 else None,
+        )
+    )
 
 
 @cli.command()
