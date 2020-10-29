@@ -186,7 +186,7 @@ def output_file_info(files):
     fmt = click.get_current_context().obj.get("output_format")
 
     if fmt == "json":
-        click.echo(json.dumps(files))
+        click.echo(json.dumps(list(files)))
     else:
         click.echo("\n\n".join(pretty_dict(d) for d in files))
 
@@ -196,7 +196,7 @@ def output_file_list(files):
 
     if fmt == "json":
         # TODO - fix this to output timestamps
-        click.echo(json.dumps(files))
+        click.echo(json.dumps(list(files)))
     else:
         [click.echo(_uri_to_relpath(f["uri"]) + "  ", nl=False) for f in files]
         click.echo()
@@ -207,7 +207,7 @@ def output_filetag_list(filetags):
 
     if fmt == "json":
         # TODO - fix this to output timestamps
-        click.echo(json.dumps(filetags))
+        click.echo(json.dumps(list(filetags)))
     else:
         [click.echo(ft["name"] + "  ", nl=False) for ft in filetags]
         click.echo()
