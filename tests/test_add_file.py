@@ -24,6 +24,6 @@ def test_add_file_should_not_update_existing_file_if_filename_different(
 
 
 def test_add_file_should_escape_uri_values(tmpdb, tmpdir):
-    filename = touch(os.path.join(tmpdir, "test\\file name"))
+    filename = touch(os.path.join(tmpdir, "test file name"))
     tag.add_file(filename)
-    assert "test%5Cfile%20name" in tag.get_file(filename)["uri"]
+    assert "test%20file%20name" in tag.get_file(filename)["uri"]
