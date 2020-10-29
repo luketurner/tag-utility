@@ -28,6 +28,7 @@ from tag import (
     count_tags,
     count_filetags,
     version,
+    search_filetags,
 )
 
 
@@ -120,8 +121,7 @@ def rm(file, tag):
 @db_session
 def ls(tag, mime):
     """Outputs all the files tagged with given tag(s). If no tags are specified, outputs all the files in the database. If multiple tags are specified, they all must match."""
-    # TODO -- still broken
-    output_file_list(search(tags=parse_tags(tag), mime_types=mime))
+    output_file_list(search_filetags(tags=tag))
 
 
 @cli.command()
@@ -136,7 +136,7 @@ def show(file, tags):
         filetags = {}
         for f in file:
             for t in get_tags_for_file(f):
-                filetags[t['id']] = t
+                filetags[t["id"]] = t
         output_filetag_list(filetags.values())
     else:
         output_file_info(get_file(f) for f in file)
