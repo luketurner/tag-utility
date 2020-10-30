@@ -13,11 +13,18 @@ def test_search_with_no_criteria_should_return_all_filetags(
     assert len(files) == 1
 
 
-def test_search_should_return_filetags_matching_tags(
+def test_search_should_return_files_matching_tags(
     tmpdb, tmpfile, sample_filetag
 ):
     files = list(tag.search_filetags(tags=["testtag"]))
     assert len(files) == 1
+
+
+def test_search_should_not_return_files_with_partial_tag_matches(
+    tmpdb, tmpfile, sample_filetag
+):
+    files = list(tag.search_filetags(tags=["testtag", "othertag"]))
+    assert len(files) == 0
 
 
 def test_search_should_not_return_files_without_matching_tags(

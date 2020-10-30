@@ -138,4 +138,7 @@ def search_filetags(
         filter_exclude_tags=exclude_tags is not None,
         filter_mime_types=mime_types is not None,
         filter_exclude_mime_types=exclude_mime_types is not None,
+        # This tag_count is used to get around my inability to figure out the length of the :tags parameter from within the sql expression
+        # Possible TODO -- handle this better
+        tag_count=len(tags or [])
     )
