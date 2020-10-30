@@ -1,12 +1,7 @@
 import os.path
-import sys
 
-from collections import namedtuple
-from contextlib import contextmanager
-from datetime import datetime
+from sys import version_info as sys_version_info
 from sqlite3 import version as sqlite_version
-
-import pony.orm as pony
 
 import pugsql
 import urllib.parse
@@ -21,7 +16,7 @@ __version__ = "0.0.1"
 def version():
     """Returns a human-readable version string."""
     return "{} (python {}; sqlite3 {})".format(
-        __version__, "{}.{}.{}".format(*sys.version_info[0:3]), sqlite_version
+        __version__, "{}.{}.{}".format(*sys_version_info[0:3]), sqlite_version
     )
 
 
