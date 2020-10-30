@@ -112,18 +112,40 @@ def get_files_for_tag(tagname, limit=None):
 
 
 def delete_file(filename):
-    """Deletes the specified file object, if it exists."""
+    """Deletes the specified file object, if it exists. Also deletes any filetags associated with the deleted file."""
+
+    # Note -- Associated filetags should be handled by foreign key ON CASCADE DELETE clause.
+    # However, it seems not all SQLite versions enforce that,
+    # so we delete associated filetags manually before deleting the file.
+    delete_filetags_for_file(filename)
+
     return query.delete_file(uri=util.path_to_uri(filename))
 
 
 def delete_tag(name):
-    """Deletes the specified tag object, if it exists."""
+    """Deletes the specified tag object, if it exists. Also deletes any filetags associated with the deleted tag."""
+
+    # Note -- Associated filetags should be handled by foreign key ON CASCADE DELETE clause.
+    # However, it seems not all SQLite versions enforce that,
+    # so we delete associated filetags manually before deleting the tag.
+    delete_filetags_for_tag(name)
+
     return query.delete_tag(name=name)
 
 
 def delete_filetag(filename, tagname):
     """Deletes the specified filetag object, if it exists."""
     return query.delete_filetag(file_uri=util.path_to_uri(filename), tag_name=tagname)
+
+
+def delete_filetags_for_file(filename):
+    """Deletes all the filetags associated with given `filename`."""
+    return query.delete_tags_for_file(file_uri=util.path_to_uri(filename))
+
+
+def delete_filetags_for_tag(tagname):
+    """Deletes all the filetags associated with given `tagname`."""
+    return query.delete_files_for_tag(tag_name=tagname)
 
 
 def count_files():

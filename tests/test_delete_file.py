@@ -11,11 +11,10 @@ def test_delete_file_should_delete_file_from_db(tmpdb, tmpfile, sample_filetag):
     assert tag.count_files() == 0
 
 
-# TODO -- fix me
-# def test_delete_file_should_delete_filetags_from_db(tmpdb, tmpfile, sample_filetag):
-#     assert tag.count_filetags() == 1
-#     tag.delete_file(tmpfile)
-#     assert tag.count_filetags() == 0
+def test_delete_file_should_delete_filetags_from_db(tmpdb, tmpfile, sample_filetag):
+    assert tag.count_filetags() == 1
+    tag.delete_file(tmpfile)
+    assert tag.count_filetags() == 0
 
 
 def test_delete_file_shouldnt_delete_tags_from_db(tmpdb, tmpfile, sample_filetag):

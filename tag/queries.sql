@@ -46,8 +46,14 @@ delete from file where uri = :uri;
 delete from tag where name = :name;
 
 -- :name delete_filetag
-delete from filetag where file in (select id from file where uri = :file_uri) and
-                           tag in (select id from tag where name = :tag_name);
+delete from filetag where file in (select id from file where uri = :file_uri)
+                      and tag in (select id from tag where name = :tag_name);
+
+-- :name delete_tags_for_file
+delete from filetag where file in (select id from file where uri = :file_uri);
+
+-- :name delete_files_for_tag
+delete from filetag where tag in (select id from tag where name = :tag_name);
 
 -- :name count_tags :scalar
 select count(*) from tag;
