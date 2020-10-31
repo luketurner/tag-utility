@@ -64,7 +64,7 @@ select count(*) from file;
 -- :name count_filetags :scalar
 select count(*) from filetag;
 
--- :name search_filetags :many
+-- :name search_files :many
 with possible_matches as (
   select filetag.file,
          count(tag.name) as tagcount

@@ -28,7 +28,7 @@ from tag import (
     count_tags,
     count_filetags,
     version,
-    search_filetags,
+    search_files,
 )
 
 
@@ -134,7 +134,7 @@ def rm(file, tag):
 def ls(tag, exclude_tag, mime, exclude_mime):
     """Outputs all the files tagged with given tag(s). If no tags are specified, outputs all the files in the database. If multiple tags are specified, outputs files matching ANY of the tags."""
     output_file_list(
-        search_filetags(
+        search_files(
             tags=tag if len(tag) > 0 else None,
             exclude_tags=exclude_tag if len(exclude_tag) > 0 else None,
             mime_types=mime if len(mime) > 0 else None,

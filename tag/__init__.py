@@ -163,13 +163,13 @@ def count_tags():
     return query.count_tags()
 
 
-def search_filetags(
+def search_files(
     tags=None, exclude_tags=None, mime_types=None, exclude_mime_types=None
 ):
     """Returns a cursor for all the file objects that match the requested search parameters.
     The `tags` parameter should be an array of tag names, ALL of which must match.
     For the other parameters (e.g. `exclude_tags` or `mime_types`), ANY of them must match."""
-    return query.search_filetags(
+    return query.search_files(
         tags=tags or [],
         exclude_tags=exclude_tags or [],
         mime_types=mime_types or [],
