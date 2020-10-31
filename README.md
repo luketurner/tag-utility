@@ -109,16 +109,22 @@ The `tag` utility can also be imported and used as a Python library. For now, th
 Simple usage example:
 
 ``` python
-from tag import *
+import tag
 
-with connect("mytags.tag.sqlite") as conn:
-    assert len(get_filetags(conn, "foo.pdf")) == 0
+tag.connect("mytags.tag.sqlite")
 
-    add_filetags(conn, "foo.pdf", { "foo": "baz", "bar": None })
-    assert len(get_filetags(conn, "foo.pdf")) == 2
+# add mytag=value to file foo.txt
+# creates files/tags if they don't already exist
+tag.add_filetags("foo.txt", { "mytag": "value" })
 
-    delete_filetags(conn, "foo.pdf", ["bar"])
-    assert len(get_filetags(conn, "foo.pdf")) == 1
+# returns the foo.txt file since we tagged it earlier
+tag.search_files(tags=["mytag"])
+
+# delete our filetag (but keep the file and tag objects)
+tag.delete_filetag("foo.txt", "mytag")
+
+# disconnect (optional)
+tag.disconnect()
 ```
 
 
