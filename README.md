@@ -14,14 +14,19 @@ tag add -t foo myphoto.jpg
 tag ls foo
 ```
 
-Tags are stored in a SQLite database (called a *tag database*) with a well-defined schema. Tags can be bare annotations (e.g. `foo`) or they can have a value (e.g. `foo=bar`).
+Tags can be simple annotations (e.g. `foo`) or they can be more like a label with a value (e.g. `foo=bar`). However, the latter case isn't fully supported yet.
 
-I created `tag` because I wanted a file-tagging program that:
+Tag data are stored in a SQLite database (called a *tag database*) with a simple, well-documented schema (see the [Database Schema](#Database_Schema) section). 
 
-1. Is unopinionated about what GUI I should use to view the files.
-2. Plays nicely with the ecosystem of Unixy tools (`cat`, `vim`, `bash`, etc.).
-3. Can search 10,000-file databases without noticeable lag.
-4. Can store tag data in the same directory tree as the files being tagged.
+The `tag` utility applies an "open" design principle, allowing the user to interact with their tag data at whatever level they choose:
+
+1. The `tag` CLI (highest level)
+2. Python library API (high level)
+3. The SQLite database (low level)
+
+`tag` uses this "open" design to make it easy to slot into my (or others') existing workflows. No application design is truly unopinionated, so by providing simple access to the data, we enable power-users to design their own tools and applications instead of being beholden to the `tag` CLI design itself.
+
+The primary advantage `tag` exhibits over standardized data formats like JSON, is performance with large datasets. By taking advantage of relational database features like indexes, `tag` maintains a short start-up time and snappy responses even if the database has many thousands of tags.
 
 # Getting Started
 
@@ -53,9 +58,11 @@ Depending on your use-case, you may wish to explicitly create a database in a ce
 tag -d ~/home.tag.sqlite info
 ```
 
+(Note -- any `tag` command will automatically create a database. In this case we're running `tag info` because it has no other side-effects once the database is created.)
+
 Once we've created a database, `tag` will default to using that database when running in that directory or any subdirectory.
 
-Now, run `tag --help` to see what other commands ara available. You can pass `--help` to a subcommand (e.g. `tag info --help`) to view detailed help for that subcommand.
+Now, run `tag --help` to see what other commands are available. You can also pass `--help` to a subcommand (e.g. `tag info --help`) to view detailed help for that subcommand.
 
 # CLI Usage
 
@@ -73,7 +80,7 @@ Usage: tag [OPTIONS] COMMAND [ARGS]...
   For example:
 
       # adds tag to foo.pdf
-      tag add -t foobar foo.pdf 
+      tag add -t foobar foo.pdf
 
       # prints foo.pdf
       tag ls foobar
@@ -104,7 +111,7 @@ Commands:
 
 # Python Library Usage
 
-The `tag` utility can also be imported and used as a Python library. For now, this is considered a power-user mode and isn't fully documented, nor is the API versioned.
+The `tag` utility can also be imported and used as a Python library. 
 
 Simple usage example:
 
@@ -127,8 +134,13 @@ tag.delete_filetag("foo.txt", "mytag")
 tag.disconnect()
 ```
 
+For a full list of the exposed API functions, please read the function documentation in the [source code](tag/__init__.py).
 
 # Database Schema
+
+It's possible to interact with a tag database directly, without using the `tag` utility at all. This approach requires a deeper understanding of the relational structure of the tag data, but it provides the most flexibility and control (while maintaining interoperability with the `tag` utility itself.)
+
+Because I recommend and encourage external tools to interact with tag databases, the SQL schema is considered a public API, not an opaque application concern. This section provides a short explanation of the schema.
 
 A tag database has these tables:
 
