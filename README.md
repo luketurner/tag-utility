@@ -135,9 +135,8 @@ A tag database has these tables:
 1. The `file` table stores all the things being tagged. The table is called `file` for simplicity, but it may contain embedded data or links outside the local filesystem (e.g. HTTP, Git, S3 links).
 2. The `tag` table stores tags. Tags have a unique id besides their name, but their name must also be unique.
 3. The `filetag` table stores relations between files and tags. Relations can include a value, which is how `foo=bar` style tags are implemented (the tag name is `foo`, the value is `bar`).
-4. The `config` table holds configuration information for later clients.
 
-![entity diagram (see source below)](./assets/tag_database_entity_diagram.svg)
+![entity diagram (see source below)](./assets/tag_database_entity_diagram.png)
 
 ```plantuml
 @startuml
@@ -149,7 +148,6 @@ entity File {
   description: str
   * uri: str
   mime_type: str
-  data: buffer
   * created_at: datetime
   * updated_at: datetime
 }
@@ -170,15 +168,8 @@ entity Tag {
   * created_at: datetime
   * updated_at: datetime
 }
-entity Config {
-  * key: str
-  --
-  value: str
-}
-
 FileTag }o--|| File
 FileTag }o--|| Tag
-
 
 @enduml
 ```
