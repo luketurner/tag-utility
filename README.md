@@ -140,15 +140,46 @@ For a full list of the exposed API functions, please read the function documenta
 
 It's possible to interact with a tag database directly, without using the `tag` utility at all. This approach requires a deeper understanding of the relational structure of the tag data, but it provides the most flexibility and control (while maintaining interoperability with the `tag` utility itself.)
 
-Because I recommend and encourage external tools to interact with tag databases, the SQL schema is considered a public API, not an opaque application concern. This section provides a short explanation of the schema.
+Because I recommend and encourage external tools to interact with tag databases, the SQL schema is considered a public API, not an opaque application concern. In order to assist in writing such external tools, this section provides a short explanation of the schema.
 
-A tag database has these tables:
+The primary table in a tag database is the `filetag` table. Conceptually speaking, "tagging a file" means adding a row to this table. Each row in the `filetag` table has a `file`, a `tag`, and an optional `value`. 
 
-1. The `file` table stores all the things being tagged. The table is called `file` for simplicity, but it may contain embedded data or links outside the local filesystem (e.g. HTTP, Git, S3 links).
-2. The `tag` table stores tags. Tags have a unique id besides their name, but their name must also be unique.
-3. The `filetag` table stores relations between files and tags. Relations can include a value, which is how `foo=bar` style tags are implemented (the tag name is `foo`, the value is `bar`).
+Both the `file` and `tag` columns are foreign keys, not simple values -- tag databases are organized using a pseudo [star schema](https://en.wikipedia.org/wiki/Star_schema), where the `filetag` table is the "fact table" and the `file` and `tag` tables are dimensions, as illustrated by this entity diagram:
 
 ![entity diagram (see source below)](./assets/tag_database_entity_diagram.png)
+
+(Note -- full schema visible in the [migrations.sql](tag/migrations.sql) file.)
+
+With this approach, the `file` and `tag` tables normalize the metadata about all the files/tags in the system. If, for example, you wanted to change the location of a file, you can do so by changing a single row in the `file` table without changing every single `filetag` associated with that row.
+
+For example, consider the following API call -- which is also equivalent to `tag add foo.txt -t foo=bar` on the CLI:
+
+``` python
+tag.add_filetags("foo.txt", { "foo": "bar" })
+```
+
+In this case, we wish to create a `filetag` that links the `foo.txt` file with the `foo` tag. But in order to do that, we first need to ensure that those file and tag rows exist in the database. (The `add_filetags` function handles this for us automatically, but if we're manually interacting with the SQL, we have to create all the rows ourselves.)
+
+When we're done, the rows in the database should look like this:
+
+### filetag
+| file | tag | value |
+|------|-----|-------|
+| 1    | 1   | bar   |
+
+### file
+| id   | name | uri   |
+|------|------|-------|
+| 1    | foo.txt | file:///home/luke/foo.txt
+
+### tag
+| id   | name |
+|------|------|
+| 1    | foo
+
+The `tag` utility heavily relies on SQL to implement library functions. If you wonder "how to do X with a tag database," I recommend using the SQL statements in [queries.sql](tag/queries.sql) as a starting point.
+
+## Entity Diagram Source
 
 ```plantuml
 @startuml
