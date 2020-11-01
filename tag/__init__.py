@@ -10,7 +10,7 @@ import tag.util as util
 query = pugsql.module(os.path.dirname(__file__))
 
 
-__version__ = "0.0.1"
+__version__ = "0.1.0"
 
 
 def version():
@@ -25,6 +25,13 @@ def version_info():
     return map(int, __version__.split("."))
 
 
+def database_version():
+    """Returns a 3-tuple -- e.g. (1, 2, 3) -- that represents the current version
+    of the database schema. This is loaded from the database's config table, so there must be an
+    open connection for this function to work, unlike the other version functions in this module."""
+    return map(int, get_config_value('tag_version').split("."))
+
+
 def connect(filename, migrate=False):
     """Opens a connection to the SQLite database specified by filename, which may or may not already exist.
     If the migration argument is True, the database schema will be created."""
@@ -34,11 +41,26 @@ def connect(filename, migrate=False):
         query.create_table_file()
         query.create_table_tag()
         query.create_table_filetag()
+        query.create_table_config()
 
 
 def disconnect():
     """Closes the open SQLite connection, if any."""
     query.disconnect()
+
+
+def get_config_value(key):
+    """Returns the value for the given config key,
+    or None if the key doesn't exist in the database.
+    Config keys should be strings, and the returned value will be a string."""
+    result = query.get_config(key=key)
+    return result["value"] if result else None
+
+
+def set_config_value(key, value):
+    """Sets the config `key` to the given `value`, overwriting any existing values.
+    Both key and value should be strings."""
+    query.set_config(key=key, value=value)
 
 
 def add_file(filename, description=None, mime_type=None, name=None):

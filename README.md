@@ -142,9 +142,11 @@ It's possible to interact with a tag database directly, without using the `tag` 
 
 Because I recommend and encourage external tools to interact with tag databases, the SQL schema is considered a public API, not an opaque application concern. In order to assist in writing such external tools, this section provides a short explanation of the schema.
 
-The primary table in a tag database is the `filetag` table. Conceptually speaking, "tagging a file" means adding a row to this table. Each row in the `filetag` table has a `file`, a `tag`, and an optional `value`. 
+First: The primary table in a tag database is the `filetag` table. Conceptually speaking, "tagging a file" means adding a row to this table. Each row in the `filetag` table has a `file`, a `tag`, and an optional `value`. 
 
-Both the `file` and `tag` columns are foreign keys, not simple values -- tag databases are organized using a pseudo [star schema](https://en.wikipedia.org/wiki/Star_schema), where the `filetag` table is the "fact table" and the `file` and `tag` tables are dimensions, as illustrated by this entity diagram:
+The `value` column is simple text, but the `file` and `tag` columns are foreign keys -- tag databases are organized using a pseudo [star schema](https://en.wikipedia.org/wiki/Star_schema), where the `filetag` table is the "fact table" and the `file` and `tag` tables are dimensions.
+
+The relation between the tables is visualized in the following entity diagram. (This diagram also introduces the `config` table, which is used to hold database-wide configuration values. See the [Config table](#Config_table) section for more information.)
 
 ![entity diagram (see source below)](./assets/tag_database_entity_diagram.png)
 
@@ -178,6 +180,18 @@ When we're done, the rows in the database should look like this:
 | 1    | foo
 
 The `tag` utility heavily relies on SQL to implement library functions. If you wonder "how to do X with a tag database," I recommend using the SQL statements in [queries.sql](tag/queries.sql) as a starting point.
+
+## Config table
+
+The `config` table holds database-wide, key-value configuration. The following keys are recommended for clients to understand:
+
+- **tag_version** - Contains the version number of the `tag` utility that created this database. Clients can check this value at startup to ensure they are operating with a compatible database schema.
+
+Besides the above keys, clients can add their own config with application-specific data. Well-behaved clients should:
+
+1. Format their config keys like: `appname_keyname`.
+2. Avoid using keys beginning with `tag` (e.g. `tag_prefix`) for application-specific data. Any future official keys will use the `tag` prefix, to minimize risk of conflict.
+3. Silently ignore any unknown config keys, even if they have the same application prefix.
 
 ## Entity Diagram Source
 
@@ -213,6 +227,14 @@ entity Tag {
 }
 FileTag }o--|| File
 FileTag }o--|| Tag
+
+entity Config {
+  * key: str
+  --
+  * value: str
+  * created_at: datetime
+  * updated_at: datetime
+}
 
 @enduml
 ```

@@ -29,6 +29,8 @@ from tag import (
     count_filetags,
     version,
     search_files,
+    get_config_value,
+    set_config_value
 )
 
 
@@ -171,6 +173,22 @@ def info():
         tag_count=count_tags() or 0,
         filetag_count=count_filetags() or 0,
     )
+
+
+@cli.command()
+@db_session
+@click.argument("key", nargs=-1, type=str)
+@click.option("--value", "-v", type=str, help="If specified, overwrites the current value of each KEY with VALUE.")
+def config(key, value):
+    """Gets/sets the value for the given config key(s).
+    By default, the current value of the key(s) are returned without modification.
+    If --value/-v is used, the value will be overwritten and then returned."""
+    for k in key:
+        if value:
+            set_config_value(key, value)
+        queried_value = get_config_value(key)
+        if queried_value:
+            click.echo(queried_value)
 
 
 def parse_tags(tags=None):

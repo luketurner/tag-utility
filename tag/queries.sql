@@ -1,6 +1,15 @@
+-- :name get_config :one
+select * from config where key = :key;
+
+-- :name set_config
+insert into config (key, value, created_at, updated_at)
+            values (:key, :value, current_timestamp, current_timestamp)
+on conflict(key) do update set updated_at=current_timestamp, value=:value;
+
+
 -- :name add_file
 insert into file (uri, name, description, mime_type, created_at, updated_at)
-         values (:uri, :name, coalesce(:description, ''), :mime_type, current_timestamp, current_timestamp)
+          values (:uri, :name, coalesce(:description, ''), :mime_type, current_timestamp, current_timestamp)
 on conflict(uri) do update set updated_at=current_timestamp,
                                name=coalesce(:name, name),
                                mime_type=coalesce(:mime_type, mime_type),

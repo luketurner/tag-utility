@@ -27,3 +27,11 @@ create table filetag (
   updated_at datetime not null,
   constraint filetag_pk primary key (file, tag) 
 ) without rowid;
+
+-- :name create_table_config
+create table config (
+  key text primary key,
+  value text,
+  created_at datetime not null,
+  updated_at datetime not null
+) without rowid;
