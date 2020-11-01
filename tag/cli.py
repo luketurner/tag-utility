@@ -75,7 +75,7 @@ def cli(ctx, database, output):
 def db_session(f):
     @click.pass_context
     def new_func(ctx, *args, **kwargs):
-        connect(ctx.obj["db_filename"])
+        connect(ctx.obj["db_filename"], migrate=True)
         return ctx.invoke(f, *args, **kwargs)
 
     return functools.update_wrapper(new_func, f)
