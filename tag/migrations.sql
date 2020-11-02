@@ -1,5 +1,5 @@
 -- :name create_table_tag
-create table tag (
+create table if not exists tag (
   id integer primary key autoincrement,
   name text unique not null,
   description text not null,
@@ -8,7 +8,7 @@ create table tag (
 );
 
 -- :name create_table_file
-create table file (
+create table if not exists file (
   id integer primary key autoincrement,
   uri text unique,
   name text not null,
@@ -19,7 +19,7 @@ create table file (
 );
 
 -- :name create_table_filetag
-create table filetag (
+create table if not exists filetag (
   file integer references file(id) on delete cascade,
   tag integer references tag(id) on delete cascade,
   value text not null,
@@ -29,7 +29,7 @@ create table filetag (
 ) without rowid;
 
 -- :name create_table_config
-create table config (
+create table if not exists config (
   key text primary key,
   value text,
   created_at datetime not null,
