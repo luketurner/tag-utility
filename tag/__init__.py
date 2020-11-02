@@ -33,7 +33,7 @@ def database_version_info():
     open connection for this function to work, unlike the other version functions in this module.
     However, if the config table doesn't exist, this will return the default value (0, 0, 0)."""
     try:
-        return map(int, get_config_value('tag_version').split("."))
+        return map(int, get_config_value("tag_version").split("."))
     except SqlalchemyOperationalError as e:
         if "no such table: config" in e.args[0]:
             return (0, 0, 0)
@@ -54,15 +54,18 @@ def connect(filename, migrate=False, strict_versions=True):
         query.create_table_config()
         if not get_config_value("tag_version"):
             set_config_value("tag_version", __version__)
-        
+
     if strict_versions:
         dbmajor, dbminor, dbpatch = dbversion = database_version_info()
         mymajor, myminor, mypatch = myversion = version_info()
         if dbmajor > mymajor:
-            raise TagException(f"Version mismatch with {filename}: it uses {dbversion}, we're using {myversion}")
+            raise TagException(
+                f"Version mismatch with {filename}: it uses {dbversion}, we're using {myversion}"
+            )
         if dbmajor < mymajor:
-            raise TagException(f"Version mismatch with {filename}: it uses {dbversion}, we're using {myversion}")
-
+            raise TagException(
+                f"Version mismatch with {filename}: it uses {dbversion}, we're using {myversion}"
+            )
 
 
 def disconnect():
@@ -227,5 +230,5 @@ def search_files(
         filter_exclude_mime_types=exclude_mime_types is not None,
         # This tag_count is used to get around my inability to figure out the length of the :tags parameter from within the sql expression
         # Possible TODO -- handle this better
-        tag_count=len(tags or [])
+        tag_count=len(tags or []),
     )

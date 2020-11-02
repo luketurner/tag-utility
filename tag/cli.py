@@ -30,7 +30,7 @@ from tag import (
     version,
     search_files,
     get_config_value,
-    set_config_value
+    set_config_value,
 )
 
 
@@ -178,7 +178,12 @@ def info():
 @cli.command()
 @db_session
 @click.argument("key", nargs=-1, type=str)
-@click.option("--value", "-v", type=str, help="If specified, overwrites the current value of each KEY with VALUE.")
+@click.option(
+    "--value",
+    "-v",
+    type=str,
+    help="If specified, overwrites the current value of each KEY with VALUE.",
+)
 def config(key, value):
     """Gets/sets the value for the given config key(s).
     By default, the current value of the key(s) are returned without modification.
