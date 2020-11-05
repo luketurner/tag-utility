@@ -68,6 +68,7 @@ Now, run `tag --help` to see what other commands are available. You can also pas
 
 CLI documentation from `tag --help` can be seen below. (Note, this doesn't include all the documentation for subcommands.)
 
+<!-- gendocs cli help start -->
 ```
 Usage: tag [OPTIONS] COMMAND [ARGS]...
 
@@ -108,6 +109,7 @@ Commands:
   rm    Removes files and/or tags from the database.
   show  Outputs details about file(s) in the database.
 ```
+<!-- gendocs cli help end -->
 
 # Python Library Usage
 
@@ -134,7 +136,11 @@ tag.delete_filetag("foo.txt", "mytag")
 tag.disconnect()
 ```
 
-For a full list of the exposed API functions, please read the function documentation in the [source code](tag/__init__.py).
+## Library API Reference
+
+<!-- gendocs api start -->
+
+<!-- gendocs api end -->
 
 # Database Schema
 
