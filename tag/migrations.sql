@@ -1,4 +1,4 @@
--- :name create_table_tag
+-- :name migrate_0_1_0_create_table_tag
 create table if not exists tag (
   id integer primary key autoincrement,
   name text unique not null,
@@ -7,7 +7,7 @@ create table if not exists tag (
   updated_at datetime not null
 );
 
--- :name create_table_file
+-- :name migrate_0_1_0_create_table_file
 create table if not exists file (
   id integer primary key autoincrement,
   uri text unique,
@@ -18,7 +18,7 @@ create table if not exists file (
   updated_at datetime not null
 );
 
--- :name create_table_filetag
+-- :name migrate_0_1_0_create_table_filetag
 create table if not exists filetag (
   file integer references file(id) on delete cascade,
   tag integer references tag(id) on delete cascade,
@@ -28,7 +28,7 @@ create table if not exists filetag (
   constraint filetag_pk primary key (file, tag) 
 ) without rowid;
 
--- :name create_table_config
+-- :name migrate_0_1_0_create_table_config
 create table if not exists config (
   key text primary key,
   value text,

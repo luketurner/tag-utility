@@ -13,7 +13,7 @@ def touch(filename, content="test-content"):
 @pytest.fixture
 def tmpdb(tmpdir):
     filename = os.path.join(tmpdir, "testdb.sqlite")
-    tag.connect(filename, migrate=True)
+    tag.connect(filename, auto_migrate=True)
     return filename
 
 

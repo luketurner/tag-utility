@@ -12,7 +12,7 @@ from sqlalchemy.exc import OperationalError as SqlalchemyOperationalError
 query = pugsql.module(os.path.dirname(__file__))
 
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 
 def version():
@@ -24,7 +24,7 @@ def version():
 
 def version_info():
     """Returns a tuple representation of the version, with three numbers: (major, minor, patch)."""
-    return map(int, __version__.split("."))
+    return tuple(map(int, __version__.split(".")))
 
 
 def database_version_info():
@@ -32,40 +32,47 @@ def database_version_info():
     of the database schema. This is loaded from the database's config table, so there must be an
     open connection for this function to work, unlike the other version functions in this module.
     However, if the config table doesn't exist, this will return the default value (0, 0, 0)."""
-    try:
-        return map(int, get_config_value("tag_version").split("."))
-    except SqlalchemyOperationalError as e:
-        if "no such table: config" in e.args[0]:
-            return (0, 0, 0)
-        else:
-            raise e
+    dbver = get_config_value("tag_version")
+    return tuple(map(int, dbver.split("."))) if dbver else (0, 0, 0)
 
 
-def connect(filename, migrate=False, strict_versions=True):
+def connect(filename, auto_migrate=False):
     """Opens a connection to the SQLite database specified by filename, which may or may not already exist.
     If the migration argument is True, the database schema will be created."""
     conn_url = f"sqlite:///file:{urllib.parse.quote(filename)}?mode=rwc&uri=true"
     query.connect(conn_url)
+    if auto_migrate:
+        migrate(dry_run=False)
 
-    if migrate:
-        query.create_table_file()
-        query.create_table_tag()
-        query.create_table_filetag()
-        query.create_table_config()
-        if not get_config_value("tag_version"):
-            set_config_value("tag_version", __version__)
 
-    if strict_versions:
-        dbmajor, dbminor, dbpatch = dbversion = database_version_info()
-        mymajor, myminor, mypatch = myversion = version_info()
-        if dbmajor > mymajor:
-            raise TagException(
-                f"Version mismatch with {filename}: it uses {dbversion}, we're using {myversion}"
-            )
-        if dbmajor < mymajor:
-            raise TagException(
-                f"Version mismatch with {filename}: it uses {dbversion}, we're using {myversion}"
-            )
+def migrate(dry_run=False):
+    """This function "updates" the tag database to the current `tag` version by running any migrations that may be missing.
+    For reasons of simplicity, migrations are not given their own table to track which are applied. Instead, this function will look
+    up the version in the database and only run migrations with a later version number than that. Also for simplicity, rollbacks are not supported.
+    
+    Migrations are safe to run on any database, if already run they will be a no-op. If the database has never been used before (empty schema),
+    migrate() will run all migrations to bring it up to date. If the database is a newer version than this codebase, migrate() is a no-op.
+    
+    If dry_run is True, this function will return a list of migration task names instead of calling them. Useful for determining which migrations will be
+    run ahead-of-time."""
+    dbver = database_version_info()
+    myver = version_info()
+
+    if dbver >= myver:
+        return None
+
+    # migration tasks are of form ((x, y, z), taskname) -- e.g. ((1, 2, 3), "migrate_1_2_3_foo")
+    all_migration_tasks = [(tuple(map(int, x.split("_", 4)[1:4])), x) for x in dir(query) if x.startswith("migrate")]
+    tasks_to_run = [getattr(query, t) for tv, t in all_migration_tasks if tv > dbver and tv <= myver]
+
+    if dry_run:
+        return tasks_to_run
+    
+    for t in tasks_to_run:
+        t()
+
+    set_config_value("tag_version", ".".join(str(v) for v in myver))
+
 
 
 def disconnect():
@@ -75,10 +82,17 @@ def disconnect():
 
 def get_config_value(key):
     """Returns the value for the given config key,
-    or None if the key doesn't exist in the database.
-    Config keys should be strings, and the returned value will be a string."""
-    result = query.get_config(key=key)
-    return result["value"] if result else None
+    or None if the key doesn't exist in the database. (Also returns None when the config table doesn't exist yet.)
+    Config keys should be strings, and the returned value will be a string (or None)."""
+    try:
+        result = query.get_config(key=key)
+        return result["value"] if result else None
+    except SqlalchemyOperationalError as e:
+        if "no such table: config" in e.args[0]:
+            return None
+        else:
+            raise e
+
 
 
 def set_config_value(key, value):
