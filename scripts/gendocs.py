@@ -28,7 +28,7 @@ def describe_nodes(nodes):
 
 def markdownify(descriptions):
   for desc in descriptions:
-    yield f"##### **{desc['name']}**({unparse(desc['args'])})\n\n{desc['docstring']}\n"
+    yield f"#### **{desc['name']}**({unparse(desc['args'])})\n\n{desc['docstring']}\n"
 
 
 def module_markdown(filename):

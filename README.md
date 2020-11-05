@@ -140,27 +140,27 @@ tag.disconnect()
 ## Library API Reference
 
 <!-- gendocs api start -->
-##### **version**()
+#### **version**()
 
 Returns a human-readable version string.
 
-##### **version_info**()
+#### **version_info**()
 
 Returns a tuple representation of the version, with three numbers: (major, minor, patch).
 
-##### **database_version_info**()
+#### **database_version_info**()
 
 Returns a 3-tuple -- e.g. (1, 2, 3) -- that represents the current version
 of the database schema. This is loaded from the database's config table, so there must be an
 open connection for this function to work, unlike the other version functions in this module.
 However, if the config table doesn't exist, this will return the default value (0, 0, 0).
 
-##### **connect**(filename, auto_migrate=False)
+#### **connect**(filename, auto_migrate=False)
 
 Opens a connection to the SQLite database specified by filename, which may or may not already exist.
 If the migration argument is True, the database schema will be created.
 
-##### **migrate**(dry_run=False)
+#### **migrate**(dry_run=False)
 
 This function "updates" the tag database to the current `tag` version by running any migrations that may be missing.
 For reasons of simplicity, migrations are not given their own table to track which are applied. Instead, this function will look
@@ -172,95 +172,95 @@ migrate() will run all migrations to bring it up to date. If the database is a n
 If dry_run is True, this function will return a list of migration task names instead of calling them. Useful for determining which migrations will be
 run ahead-of-time.
 
-##### **disconnect**()
+#### **disconnect**()
 
 Closes the open SQLite connection, if any.
 
-##### **get_config_value**(key)
+#### **get_config_value**(key)
 
 Returns the value for the given config key,
 or None if the key doesn't exist in the database. (Also returns None when the config table doesn't exist yet.)
 Config keys should be strings, and the returned value will be a string (or None).
 
-##### **set_config_value**(key, value)
+#### **set_config_value**(key, value)
 
 Sets the config `key` to the given `value`, overwriting any existing values.
 Both key and value should be strings.
 
-##### **add_file**(filename, description=None, mime_type=None, name=None)
+#### **add_file**(filename, description=None, mime_type=None, name=None)
 
 Adds a `file` object to the tag database.
 If a file object already exists with the same filename, that object will be updated instead of creating a new one.
 If mime_type is not specified, will attempt to guess the MIME type of the file based on its extension.
 If name is not specified, will default to the file's basename (e.g. "foo.txt.").
 
-##### **add_tag**(name, description=None)
+#### **add_tag**(name, description=None)
 
 Adds a tag to the tag database. (Note -- this doesn't associate the tag with any files. Use add_filetags for that.)
 If a tag with the same name already exists, the existing tag will be used instead of creating a new one.
 
-##### **add_filetags**(filename, tags, create_tags=True, create_file=True)
+#### **add_filetags**(filename, tags, create_tags=True, create_file=True)
 
 Adds one or more filetags to the tag database. The filetags are linked to the file given by `filename`.
 The `tags` parameter should be a dict where keys are tag names and values are filetag data (or None to indicate no filetag data.)
 By default, this function will automatically create the associated file and tag records as well if they are missing.
 To disable this behavior (i.e. to create _only_ filetags), use the create_tags and create_file parameters.
 
-##### **get_file**(filename)
+#### **get_file**(filename)
 
 Returns the file object given by `filename`.
 
-##### **get_tag**(name)
+#### **get_tag**(name)
 
 Returns the tag object given by `name`.
 
-##### **get_filetag**(filename, tagname)
+#### **get_filetag**(filename, tagname)
 
 Returns the filetag object that refers to both the given filename and tagname.
 
-##### **get_tags_for_file**(filename, limit=None)
+#### **get_tags_for_file**(filename, limit=None)
 
 Returns a cursor for all the tags that are associated with `filename`.
 The `limit` parameter can be used to control the max number of results to return.
 
-##### **get_files_for_tag**(tagname, limit=None)
+#### **get_files_for_tag**(tagname, limit=None)
 
 Returns a cursor for all the files that are associated with `tagname`.
 The `limit` parameter can be used to control the max number of results to return.
 
-##### **delete_file**(filename)
+#### **delete_file**(filename)
 
 Deletes the specified file object, if it exists. Also deletes any filetags associated with the deleted file.
 
-##### **delete_tag**(name)
+#### **delete_tag**(name)
 
 Deletes the specified tag object, if it exists. Also deletes any filetags associated with the deleted tag.
 
-##### **delete_filetag**(filename, tagname)
+#### **delete_filetag**(filename, tagname)
 
 Deletes the specified filetag object, if it exists.
 
-##### **delete_filetags_for_file**(filename)
+#### **delete_filetags_for_file**(filename)
 
 Deletes all the filetags associated with given `filename`.
 
-##### **delete_filetags_for_tag**(tagname)
+#### **delete_filetags_for_tag**(tagname)
 
 Deletes all the filetags associated with given `tagname`.
 
-##### **count_files**()
+#### **count_files**()
 
 Returns the number of files in the database.
 
-##### **count_filetags**()
+#### **count_filetags**()
 
 Returns the number of filetags in the database.
 
-##### **count_tags**()
+#### **count_tags**()
 
 Returns the number of tags in the database.
 
-##### **search_files**(tags=None, exclude_tags=None, mime_types=None, exclude_mime_types=None)
+#### **search_files**(tags=None, exclude_tags=None, mime_types=None, exclude_mime_types=None)
 
 Returns a cursor for all the file objects that match the requested search parameters.
 The `tags` parameter should be an array of tag names, ALL of which must match.
