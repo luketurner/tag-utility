@@ -208,9 +208,26 @@ def delete_filetags_for_tag(tagname):
     return query.delete_files_for_tag(tag_name=tagname)
 
 
-def count_files():
-    """Returns the number of files in the database."""
-    return query.count_files()
+def count_files(tags=None, exclude_tags=None, mime_types=None, exclude_mime_types=None):
+    """Returns the number of files in the database that match the given search criteria.
+    See `search_files` function for detailed description of individual criteria."""
+    return query.count_files(
+        tags=tags or [],
+        exclude_tags=exclude_tags or [],
+        mime_types=mime_types or [],
+        exclude_mime_types=exclude_mime_types or [],
+        # Note -- these filter_foo conditionals are used in the query to determine whether the client intended
+        # to filter based on the particular element. This is done in Python instead of calculating it in SQL, because
+        # I don't know how to determine whether a list parameter is empty in SQL.
+        # Possible TODO -- handle this better
+        filter_tags=tags is not None,
+        filter_exclude_tags=exclude_tags is not None,
+        filter_mime_types=mime_types is not None,
+        filter_exclude_mime_types=exclude_mime_types is not None,
+        # This tag_count is used to get around my inability to figure out the length of the :tags parameter from within the sql expression
+        # Possible TODO -- handle this better
+        tag_count=len(tags or []),
+    )
 
 
 def count_filetags():

@@ -67,11 +67,25 @@ delete from filetag where tag in (select id from tag where name = :tag_name);
 -- :name count_tags :scalar
 select count(*) from tag;
 
--- :name count_files :scalar
-select count(*) from file;
-
 -- :name count_filetags :scalar
 select count(*) from filetag;
+
+-- :name count_files :scalar
+with possible_matches as (
+  select file.id,
+         count(tag.name) as tagcount
+  from file
+       left join filetag on file.id = filetag.file
+       left join tag on filetag.tag = tag.id
+  where case when :filter_tags then tag.name in :tags else true end
+    and case when :filter_exclude_tags then tag.name not in :exclude_tags else true end
+    and case when :filter_mime_types then file.mime_type in :mime_types else true end
+    and case when :filter_exclude_mime_types then file.mime_type not in :exclude_mime_types else true end
+  group by file.id
+)
+select count(id) from possible_matches
+where case when :filter_tags then tagcount = :tag_count else true end;
+
 
 -- :name search_files :many
 with possible_matches as (
