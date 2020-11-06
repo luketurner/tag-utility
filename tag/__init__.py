@@ -62,17 +62,22 @@ def migrate(dry_run=False):
         return None
 
     # migration tasks are of form ((x, y, z), taskname) -- e.g. ((1, 2, 3), "migrate_1_2_3_foo")
-    all_migration_tasks = [(tuple(map(int, x.split("_", 4)[1:4])), x) for x in dir(query) if x.startswith("migrate")]
-    tasks_to_run = [getattr(query, t) for tv, t in all_migration_tasks if tv > dbver and tv <= myver]
+    all_migration_tasks = [
+        (tuple(map(int, x.split("_", 4)[1:4])), x)
+        for x in dir(query)
+        if x.startswith("migrate")
+    ]
+    tasks_to_run = [
+        getattr(query, t) for tv, t in all_migration_tasks if tv > dbver and tv <= myver
+    ]
 
     if dry_run:
         return tasks_to_run
-    
+
     for t in tasks_to_run:
         t()
 
     set_config_value("tag_version", ".".join(str(v) for v in myver))
-
 
 
 def disconnect():
@@ -92,7 +97,6 @@ def get_config_value(key):
             return None
         else:
             raise e
-
 
 
 def set_config_value(key, value):

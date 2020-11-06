@@ -35,6 +35,7 @@ def tmpfiles(tmpdir):
 def sample_filetag(tmpdb, tmpfile):
     yield tag.add_filetags(tmpfile, {"testtag": "testvalue"})
 
+
 @pytest.fixture
 def sample_file(tmpdb, tmpfile):
     yield tag.add_file(tmpfile)

@@ -12,9 +12,7 @@ def test_search_with_no_criteria_should_return_all_filetags(
     assert len(files) == 1
 
 
-def test_search_should_return_files_matching_tags(
-    tmpdb, tmpfile, sample_filetag
-):
+def test_search_should_return_files_matching_tags(tmpdb, tmpfile, sample_filetag):
     files = list(tag.search_files(tags=["testtag"]))
     assert len(files) == 1
 
@@ -54,9 +52,6 @@ def test_search_should_exclude_filetags_with_exclude_mime_types(
     assert len(files) == 0
 
 
-def test_search_should_match_files_with_no_tags(
-    sample_file
-):
-
+def test_search_should_match_files_with_no_tags(sample_file):
     files = list(tag.search_files())
     assert len(files) == 1
