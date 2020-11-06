@@ -248,9 +248,10 @@ Deletes all the filetags associated with given `filename`.
 
 Deletes all the filetags associated with given `tagname`.
 
-#### **count_files**()
+#### **count_files**(tags=None, exclude_tags=None, mime_types=None, exclude_mime_types=None)
 
-Returns the number of files in the database.
+Returns the number of files in the database that match the given search criteria.
+See `search_files` function for detailed description of individual criteria.
 
 #### **count_filetags**()
 
@@ -260,7 +261,7 @@ Returns the number of filetags in the database.
 
 Returns the number of tags in the database.
 
-#### **search_files**(tags=None, exclude_tags=None, mime_types=None, exclude_mime_types=None)
+#### **search_files**(tags=None, exclude_tags=None, mime_types=None, exclude_mime_types=None, limit=None, offset=None)
 
 Returns a cursor for all the file objects that match the requested search parameters.
 The `tags` parameter should be an array of tag names, ALL of which must match.
