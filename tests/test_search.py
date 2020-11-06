@@ -52,3 +52,11 @@ def test_search_should_exclude_filetags_with_exclude_mime_types(
 ):
     files = list(tag.search_files(exclude_mime_types=["text/plain"]))
     assert len(files) == 0
+
+
+def test_search_should_match_files_with_no_tags(
+    sample_file
+):
+
+    files = list(tag.search_files())
+    assert len(files) == 1

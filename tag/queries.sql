@@ -75,11 +75,11 @@ select count(*) from filetag;
 
 -- :name search_files :many
 with possible_matches as (
-  select filetag.file,
+  select file.id,
          count(tag.name) as tagcount
-  from filetag,
-       tag on filetag.tag = tag.id,
-       file on filetag.file = file.id
+  from file
+       left join filetag on file.id = filetag.file
+       left join tag on filetag.tag = tag.id
   where case when :filter_tags then tag.name in :tags else true end
     and case when :filter_exclude_tags then tag.name not in :exclude_tags else true end
     and case when :filter_mime_types then file.mime_type in :mime_types else true end
@@ -88,5 +88,5 @@ with possible_matches as (
 )
 select file.*
 from possible_matches,
-     file on file.id = possible_matches.file
+     file on file.id = possible_matches.id
 where case when :filter_tags then tagcount = :tag_count else true end;
