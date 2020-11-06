@@ -224,7 +224,12 @@ def count_tags():
 
 
 def search_files(
-    tags=None, exclude_tags=None, mime_types=None, exclude_mime_types=None
+    tags=None,
+    exclude_tags=None,
+    mime_types=None,
+    exclude_mime_types=None,
+    limit=None,
+    offset=None,
 ):
     """Returns a cursor for all the file objects that match the requested search parameters.
     The `tags` parameter should be an array of tag names, ALL of which must match.
@@ -245,4 +250,7 @@ def search_files(
         # This tag_count is used to get around my inability to figure out the length of the :tags parameter from within the sql expression
         # Possible TODO -- handle this better
         tag_count=len(tags or []),
+        # Note -- LIMIT/OFFSET is probably not the most efficient approach. Merits testing?
+        limit=limit or -1,
+        offset=offset or 0,
     )

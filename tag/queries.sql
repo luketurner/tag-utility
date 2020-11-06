@@ -89,4 +89,5 @@ with possible_matches as (
 select file.*
 from possible_matches,
      file on file.id = possible_matches.id
-where case when :filter_tags then tagcount = :tag_count else true end;
+where case when :filter_tags then tagcount = :tag_count else true end
+limit :limit offset :offset;
