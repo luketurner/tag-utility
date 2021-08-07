@@ -1,7 +1,5 @@
 # tag-utility
 
-> **WARNING:** `tag` is a work in progress! Use at your own risk!
-
 `tag` is a CLI utility (and Python library) for organizing files in a non-hierarchical way using... guess what... *tags*!
 
 A simple example:
